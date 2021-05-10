@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        std::cerr << "socket creation error" << std::endl;
+        perror("socket creation");
         exit(EXIT_FAILURE);
     }
 
@@ -34,12 +34,12 @@ int main(int argc, char **argv) {
 
     // Convert IPv4 and IPv6 addresses from text to binary form
     if (inet_pton(AF_INET, serverHost, &serv_addr.sin_addr) <= 0) {
-        printf("\nInvalid address/ Address not supported \n");
+        perror("inet_pton");
         return -1;
     }
 
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        printf("\nConnection Failed \n");
+        perror("connect");
         return -1;
     }
 
