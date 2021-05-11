@@ -14,19 +14,22 @@
 
 std::mutex acceptConnectionsMX;
 
-void process_client(int serv_socket) {
-    int client_sock;
+bool serverRunning = true;
+
+void process_client(int serverSock) {
+    int clientSock;
     struct sockaddr_in clientSockAddr;
     int c = sizeof(struct sockaddr_in);
     char *message = "pong\n";
-    for (;;) {
+
+    while (serverRunning) {
 
         acceptConnectionsMX.lock();
-        client_sock = accept(serv_socket, (struct sockaddr *) &clientSockAddr, (socklen_t *) &c);
+        clientSock = accept(serverSock, (struct sockaddr *) &clientSockAddr, (socklen_t *) &c);
         acceptConnectionsMX.unlock();
 
-        if (client_sock < 0) {
-            std::cerr << "accept failed" << std::endl;
+        if (clientSock < 0) {
+            perror("accept() failed");
             continue;
         }
 
@@ -38,7 +41,11 @@ void process_client(int serv_socket) {
         for (;;) {
 
             memset(income, 0, sizeof income);
-            size_t readLen = read(client_sock, income, sizeof income);
+            size_t readLen = read(clientSock, income, sizeof income);
+            if (readLen == 0) {
+                close(clientSock);
+                continue;
+            }
             if (readLen < 0) {
                 std::cerr << "can't read client message" << std::endl;
                 continue;
@@ -48,16 +55,22 @@ void process_client(int serv_socket) {
 
             std::cout << "<<< " << command << std::endl;
 
-            if (command == "exit" || command == "shutdown")
+            if (command == "exit") {
+                close(clientSock);
                 break;
+            }
+            if (command == "shutdown") {
+                serverRunning = false;
+                break;
+            }
 
-            send(client_sock, message, strlen(message), 0);
+            send(clientSock, message, strlen(message), 0);
             std::cout << ">>> " << message << std::endl;
         }
 
         std::cout << "client disconnected..." << std::endl;
 
-        close(client_sock);
+        close(clientSock);
 
         if (command == "shutdown")
             break;
@@ -88,25 +101,25 @@ int main(int argc, char **argv) {
     memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
     // sockAddr.sin_addr.s_addr = INADDR_ANY;
 
-    int serv_socket = socket(AF_INET, SOCK_STREAM, 0);
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-    int bindRes = bind(serv_socket, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
+    int bindRes = bind(serverSocket, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
     if (bindRes != 0) {
         std::cerr << "can't bind socket to address" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    int listenRes = listen(serv_socket, 3);
+    int listenRes = listen(serverSocket, 3);
     if (0 != listenRes) {
         std::cerr << "can't start socket listening" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    std::thread th1(process_client, serv_socket);
-    std::thread th2(process_client, serv_socket);
-    std::thread th3(process_client, serv_socket);
-    std::thread th4(process_client, serv_socket);
-    std::thread th5(process_client, serv_socket);
+    std::thread th1(process_client, serverSocket);
+    std::thread th2(process_client, serverSocket);
+    std::thread th3(process_client, serverSocket);
+    std::thread th4(process_client, serverSocket);
+    std::thread th5(process_client, serverSocket);
 
     th1.join();
     th2.join();
@@ -114,6 +127,7 @@ int main(int argc, char **argv) {
     th4.join();
     th5.join();
 
+    close(serverSocket);
     std::cout << "server shutdowning..." << std::endl;
 
     return 0;

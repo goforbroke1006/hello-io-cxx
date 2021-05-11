@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
-        perror("socket");
+        perror("socket() failed");
         exit(EXIT_FAILURE);
     }
 
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     /*************************************************************/
     int on = 1;
     if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0) {
-        perror("setsockopt");
+        perror("setsockopt() failed");
         exit(EXIT_FAILURE);
     }
 
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     /* they will inherit that state from the listening socket.   */
     /*************************************************************/
     if (ioctl(serverSocket, FIONBIO, (char *) &on) < 0) {
-        perror("ioctl");
+        perror("ioctl() failed");
         exit(EXIT_FAILURE);
     }
 
@@ -60,28 +60,28 @@ int main(int argc, char **argv) {
 
     auto he = gethostbyname(serverHost);
     if (nullptr == he) {
-        perror("gethostbyname");
+        perror("gethostbyname() failed");
         exit(EXIT_FAILURE);
     }
     memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
 
     int bindRes = bind(serverSocket, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
     if (bindRes != 0) {
-        perror("bind");
+        perror("bind() failed");
         close(serverSocket);
         exit(EXIT_FAILURE);
     }
 
     int listenRes = listen(serverSocket, 32);
     if (0 != listenRes) {
-        perror("listen");
+        perror("listen() failed");
         close(serverSocket);
         exit(EXIT_FAILURE);
     }
 
 
     struct pollfd fds[10000];
-    int nfds = 1, startListen = 9000;
+    int nfds = 1, startListen = 10000;
     int current_size = 0;
 
     memset(fds, 0, sizeof(fds));
@@ -97,12 +97,14 @@ int main(int argc, char **argv) {
             startListen = nfds;
 
         int pollRes = poll(fds, startListen, 0);
+//        int pollRes = poll(fds, nfds, 0);
         if (pollRes < 0) {
-            perror("select");
+            perror("poll() failed");
             serverRunning = false;
         }
 
 //        current_size = nfds;
+//        for (int i = 0; i < current_size; i++) {
         for (int i = 0; i < startListen; i++) {
 
             /*********************************************************/
@@ -118,7 +120,7 @@ int main(int argc, char **argv) {
             /* log and end the server.                               */
             /*********************************************************/
             if (fds[i].revents != POLLIN) {
-                printf("  Error! revents = %d\n", fds[i].revents);
+                printf("  Error! [%d]revents = %d\n", i, fds[i].revents);
                 serverRunning = false;
                 break;
             }
@@ -129,7 +131,7 @@ int main(int argc, char **argv) {
                     clientSock = accept(serverSocket, nullptr, nullptr);
                     if (clientSock < 0) {
                         if (errno != EWOULDBLOCK) {
-                            perror("accept failed");
+                            perror("accept() failed");
                             serverRunning = false;
                         }
                         break;
@@ -139,9 +141,14 @@ int main(int argc, char **argv) {
                     nfds++;
                 } while (clientSock != -1);
             } else {
-                ssize_t resLen = readFromClient(fds[i].fd, serverRunning);
+                bool cd = false;
+                ssize_t resLen = readFromClient(fds[i].fd, serverRunning, cd);
+                if (cd) {
+                    fds[i].fd = -1;
+                }
                 if (resLen < 0) {
                     if (errno != EWOULDBLOCK) {
+                        std::cerr << "i=" << i << " fd=" << fds[i].fd << std::endl;
                         perror("recv() failed");
                         serverRunning = false;
                     }

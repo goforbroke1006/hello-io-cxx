@@ -15,7 +15,7 @@ fi
 if [[ -z $CONCURRENCY ]]; then CONCURRENCY=100; fi
 
 # constants
-SERVER_PORT=12000
+SERVER_PORT=12002
 SERVER_TARGET=$(basename "$SERVER_BINARY")
 LOG_FILENAME=./${SERVER_TARGET}-output.log
 
@@ -53,6 +53,21 @@ for ((i = 1; i <= ${CONCURRENCY}; i++)); do
     echo "communication finished..."
   ) &
 done
+
+(
+  sleep 100
+  echo 'shutdown' | telnet 127.0.0.1 ${SERVER_PORT}
+  echo 'shutdown server because timeout exceeded'
+  exit 1
+) &
+
+(
+  sleep 125
+  pkill -9 -f "${CLIENT_BINARY}"
+  pkill -9 -f "${SERVER_BINARY}"
+  echo 'terminate clients and server because timeout exceeded'
+  exit 1
+) &
 
 #read -p -r "Press enter to continue..."
 while true; do

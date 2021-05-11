@@ -80,49 +80,44 @@ int main(int argc, char **argv) {
     }
 
 
-//    fd_set active_fd_set, read_fd_set;
-    fd_set master_set, working_set;
+    fd_set masterSet, workingSet;
     int max_sd;
 
-//    FD_ZERO (&active_fd_set);
-//    max_sd = serverSocket;
-//    FD_SET (serverSocket, &active_fd_set);
-
-    FD_ZERO(&master_set);
+    FD_ZERO(&masterSet);
     max_sd = serverSocket;
-    FD_SET(serverSocket, &master_set);
+    FD_SET(serverSocket, &masterSet);
 
-    struct sockaddr_in clientname;
+    struct sockaddr_in clientName;
 
     while (serverRunning) {
-        memcpy(&working_set, &master_set, sizeof(master_set));
 
+        memcpy(&workingSet, &masterSet, sizeof(masterSet));
 
-        int selectRes = select(max_sd + 10000, &working_set, nullptr, nullptr, nullptr);
+        int selectRes = select(max_sd + 10000, &workingSet, nullptr, nullptr, nullptr);
         if (selectRes < 0) {
             perror("select");
             exit(EXIT_FAILURE);
         }
-//        std::cout << "select() result: " << selectRes << std::endl;
 
         for (int i = 0; i <= max_sd; ++i) {
-            if (FD_ISSET(i, &working_set)) {
+            if (FD_ISSET(i, &workingSet)) {
 
                 if (i == serverSocket) {
-                    size_t size = sizeof(clientname);
-                    int clientSock = accept(serverSocket, (struct sockaddr *) &clientname, (socklen_t *) &size);
+                    size_t size = sizeof(clientName);
+                    int clientSock = accept(serverSocket, (struct sockaddr *) &clientName, (socklen_t *) &size);
                     if (clientSock < 0) {
                         perror("accept");
-                        exit(EXIT_FAILURE);
+                        break;
                     }
-                    FD_SET(clientSock, &master_set);
+                    FD_SET(clientSock, &masterSet);
                     if (clientSock > max_sd) {
                         max_sd = clientSock;
                     }
                 } else {
-                    if (readFromClient(i, serverRunning) == 0) {
-                        close(i);
-                        FD_CLR (i, &master_set);
+                    bool cd = false;
+                    readFromClient(i, serverRunning, cd);
+                    if (cd) {
+                        FD_CLR(i, &masterSet);
                     }
                 }
 
@@ -135,7 +130,7 @@ int main(int argc, char **argv) {
     /* Clean up all of the sockets that are open                 */
     /*************************************************************/
     for (int i = 0; i <= max_sd; ++i) {
-        if (FD_ISSET(i, &master_set))
+        if (FD_ISSET(i, &masterSet))
             close(i);
     }
 

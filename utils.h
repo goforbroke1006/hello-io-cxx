@@ -32,7 +32,7 @@ inline std::string &trim(std::string &s, const char *t = ws) {
 
 #define MAXMSG 2048
 
-ssize_t readFromClient(int clientSockFD, bool &serverRunning) {
+ssize_t readFromClient(int clientSockFD, bool &serverRunning, bool &clientDisconnected) {
     char buffer[MAXMSG];
     memset(buffer, 0, sizeof buffer);
 
@@ -41,7 +41,12 @@ ssize_t readFromClient(int clientSockFD, bool &serverRunning) {
 
     ssize_t nbytes = read(clientSockFD, buffer, MAXMSG);
 
-    if (nbytes <= 0) {
+    if (nbytes < 0) {
+        return nbytes;
+    }
+    if (nbytes == 0) {
+        close(clientSockFD);
+        clientDisconnected = true;
         return nbytes;
     }
 
@@ -54,6 +59,7 @@ ssize_t readFromClient(int clientSockFD, bool &serverRunning) {
 
     if (command == "exit") {
         close(clientSockFD);
+        clientDisconnected = true;
         return 0;
     }
 

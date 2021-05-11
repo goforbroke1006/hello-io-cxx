@@ -18,27 +18,12 @@ cmake ..
 make
 cd ..
 
-# bash ./run-demo.sh <server_app> <client_app> <concurrency>
+# bash ./run-demo.sh <socket_server_app> <socket_client_app> <concurrency>
 
-bash ./run-demo.sh \
-  ./cmake-build-debug/01-ss-1th/01-ss-1th \
-  ./cmake-build-debug/client/client \
-  10000
-
-bash ./run-demo.sh \
-  ./cmake-build-debug/02-ss-5th/02-ss-5th \
-  ./cmake-build-debug/client/client \
-  10000
-
-bash ./run-demo.sh \
-  ./cmake-build-debug/03-ss-select/03-ss-select \
-  ./cmake-build-debug/client/client \
-  10000
-
-bash ./run-demo.sh \
-  ./cmake-build-debug/04-ss-poll/04-ss-poll \
-  ./cmake-build-debug/client/client \
-  10000
+bash ./run-demo.sh ./cmake-build-debug/01-ss-1th/01-ss-1th ./cmake-build-debug/client/client 10000
+bash ./run-demo.sh ./cmake-build-debug/02-ss-5th/02-ss-5th ./cmake-build-debug/client/client 10000
+bash ./run-demo.sh ./cmake-build-debug/03-ss-select/03-ss-select ./cmake-build-debug/client/client 10000
+bash ./run-demo.sh ./cmake-build-debug/04-ss-poll/04-ss-poll ./cmake-build-debug/client/client 10000
 
 ```
 
