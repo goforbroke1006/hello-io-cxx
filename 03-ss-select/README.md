@@ -1,11 +1,3 @@
-# server-socket
+# 03-ss-select
 
-```bash
-./cmake-build-debug/01-ss-1th/01-ss-1th 0.0.0.0 8080
-```
-
-```bash
-telnet 127.0.0.1 8080
-# Ctrl + ]
-# quit
-```
+Based on https://www.ibm.com/docs/en/i/7.2?topic=designs-example-nonblocking-io-select

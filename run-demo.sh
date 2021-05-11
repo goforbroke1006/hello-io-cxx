@@ -15,13 +15,11 @@ fi
 if [[ -z $CONCURRENCY ]]; then CONCURRENCY=100; fi
 
 # constants
-SERVER_PORT=12000
+SERVER_PORT=12001
 SERVER_TARGET=$(basename "$SERVER_BINARY")
 LOG_FILENAME=./${SERVER_TARGET}-output.log
 
 # run script
-
-
 
 OLD_SERVER_PID=$(lsof -t -i:${SERVER_PORT})
 if [[ ! -z $OLD_SERVER_PID ]]; then
@@ -51,7 +49,7 @@ sleep 5
 
 for ((i = 1; i <= ${CONCURRENCY}; i++)); do
   (
-    bash -c "${CLIENT_BINARY} 127.0.0.1 ${SERVER_PORT} >>${LOG_FILENAME}"
+    bash -c "${CLIENT_BINARY} 127.0.0.1 ${SERVER_PORT} >>${LOG_FILENAME} 2>&1"
     echo "communication finished..."
   ) &
 done

@@ -1,4 +1,4 @@
-# server-socket
+# 01-ss-1th
 
 ```bash
 ./cmake-build-debug/01-ss-1th/01-ss-1th 0.0.0.0 8080

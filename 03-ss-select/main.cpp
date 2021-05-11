@@ -109,7 +109,6 @@ int main(int argc, char **argv) {
 
         for (int i = 0; i <= max_sd; ++i) {
             if (FD_ISSET(i, &working_set)) {
-                std::cout << "isset true" << std::endl;
 
                 if (i == serverSocket) {
                     size_t size = sizeof(clientname);
@@ -128,6 +127,7 @@ int main(int argc, char **argv) {
                         FD_CLR (i, &master_set);
                     }
                 }
+
             }
         }
 
