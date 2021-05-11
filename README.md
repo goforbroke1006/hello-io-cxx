@@ -1,4 +1,15 @@
+# hello-io-cxx
 
+I/O frameworks comparison project.
+
+### Server implementation types
+
+* **01-ss-1th** - single-thread socket server
+* **02-ss-5th** - multi-thread socket server
+* **03-ss-select** - with select() sys-call
+* **04-ss-poll** - with poll() sys-call
+
+### How to run demos
 
 ```bash
 mkdir -p cmake-build-debug
