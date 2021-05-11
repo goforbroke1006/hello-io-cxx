@@ -1,6 +1,6 @@
 project(02-ss-5th)
 
-add_executable(${PROJECT_NAME} main.cpp utils.h)
+add_executable(${PROJECT_NAME} main.cpp)
 
 find_package(Threads REQUIRED)
 

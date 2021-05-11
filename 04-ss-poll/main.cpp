@@ -7,8 +7,8 @@
 #include <netinet/in.h> // sockaddr_in{} socket()
 #include <netdb.h>      // gethostbyname()
 #include <unistd.h>     // close()
-#include <sys/select.h> // fd_set{}
 #include <sys/ioctl.h>  // FIONBIO
+#include <sys/poll.h>   // pollfd{}
 
 #include "../utils.h"
 
@@ -82,53 +82,75 @@ int main(int argc, char **argv) {
     }
 
 
-//    fd_set active_fd_set, read_fd_set;
-    fd_set master_set, working_set;
-    int max_sd;
+    struct pollfd fds[10000];
+    int nfds = 1, startListen = 9000;
+    int current_size = 0;
 
-//    FD_ZERO (&active_fd_set);
-//    max_sd = serverSocket;
-//    FD_SET (serverSocket, &active_fd_set);
-
-    FD_ZERO(&master_set);
-    max_sd = serverSocket;
-    FD_SET(serverSocket, &master_set);
-
-    struct sockaddr_in clientname;
+    memset(fds, 0, sizeof(fds));
+    fds[0].fd = serverSocket;
+    fds[0].events = POLLIN;
 
     while (serverRunning) {
-        memcpy(&working_set, &master_set, sizeof(master_set));
 
+        if (nfds > 10000)
+            nfds = 10000;
+        if (nfds > startListen)
+            startListen = nfds;
 
-        int selectRes = select(max_sd + 10000, &working_set, nullptr, nullptr, nullptr);
-        if (selectRes < 0) {
+        int pollRes = poll(fds, startListen, 0);
+        if (pollRes < 0) {
             perror("select");
-            exit(EXIT_FAILURE);
+            serverRunning = false;
         }
-//        std::cout << "select() result: " << selectRes << std::endl;
 
-        for (int i = 0; i <= max_sd; ++i) {
-            if (FD_ISSET(i, &working_set)) {
+//        current_size = nfds;
+        for (int i = 0; i < startListen; i++) {
 
-                if (i == serverSocket) {
-                    size_t size = sizeof(clientname);
-                    int clientSock = accept(serverSocket, (struct sockaddr *) &clientname, (socklen_t *) &size);
-                    if (clientSock < 0) {
-                        perror("accept");
-                        exit(EXIT_FAILURE);
-                    }
-                    FD_SET(clientSock, &master_set);
-                    if (clientSock > max_sd) {
-                        max_sd = clientSock;
-                    }
-                } else {
-                    if (readFromClient(i) == 0) {
-                        close(i);
-                        FD_CLR (i, &master_set);
-                    }
-                }
+            /*********************************************************/
+            /* Loop through to find the descriptors that returned    */
+            /* POLLIN and determine whether it's the listening       */
+            /* or the active connection.                             */
+            /*********************************************************/
+            if (fds[i].revents == 0)
+                continue;
 
+            /*********************************************************/
+            /* If revents is not POLLIN, it's an unexpected result,  */
+            /* log and end the server.                               */
+            /*********************************************************/
+            if (fds[i].revents != POLLIN) {
+                printf("  Error! revents = %d\n", fds[i].revents);
+                serverRunning = false;
+                break;
             }
+
+            if (fds[i].fd == serverSocket) {
+                int clientSock = 0;
+                do {
+                    clientSock = accept(serverSocket, nullptr, nullptr);
+                    if (clientSock < 0) {
+                        if (errno != EWOULDBLOCK) {
+                            perror("accept failed");
+                            serverRunning = false;
+                        }
+                        break;
+                    }
+                    fds[nfds].fd = clientSock;
+                    fds[nfds].events = POLLIN;
+                    nfds++;
+                } while (clientSock != -1);
+            } else {
+                ssize_t resLen = readFromClient(fds[i].fd);
+                if (resLen < 0) {
+                    if (errno != EWOULDBLOCK) {
+                        perror("recv() failed");
+                        serverRunning = false;
+                    }
+                    break;
+                }
+            }
+
+
         }
 
     }
@@ -136,9 +158,9 @@ int main(int argc, char **argv) {
     /*************************************************************/
     /* Clean up all of the sockets that are open                 */
     /*************************************************************/
-    for (int i = 0; i <= max_sd; ++i) {
-        if (FD_ISSET(i, &master_set))
-            close(i);
+    for (int i = 0; i <= nfds; ++i) {
+        if (fds[i].fd >= 0)
+            close(fds[i].fd);
     }
 
 
@@ -150,35 +172,32 @@ int main(int argc, char **argv) {
 
 #define MAXMSG 2048
 
-ssize_t readFromClient(int clientSock) {
+ssize_t readFromClient(int clientSockFD) {
     char buffer[MAXMSG];
     ssize_t nbytes;
     std::string command;
     char *message = "pong\n";
 
-    nbytes = read(clientSock, buffer, MAXMSG);
+    nbytes = read(clientSockFD, buffer, MAXMSG);
 
-    if (nbytes < 0) {
-        perror("read");
-        exit(EXIT_FAILURE);
-    } else if (nbytes == 0)
-        /* End-of-file. */
-        return 0;
-    else {
-        command = buffer;
-        command = trim(command);
-        std::cout << "<<< " << command << std::endl;
-
-        if (command == "shutdown")
-            serverRunning = false;
-
-        if (command == "shutdown" || command == "exit") {
-            return 0;
-        }
-
-        send(clientSock, message, strlen(message), 0);
-        std::cout << ">>> " << message << std::endl;
-
+    if (nbytes <= 0) {
         return nbytes;
     }
+
+    command = buffer;
+    command = trim(command);
+    std::cout << "<<< " << command << std::endl;
+
+    if (command == "shutdown")
+        serverRunning = false;
+
+    if (command == "exit") {
+        close(clientSockFD);
+        return 0;
+    }
+
+    send(clientSockFD, message, strlen(message), 0);
+    std::cout << ">>> " << message << std::endl;
+
+    return nbytes;
 }

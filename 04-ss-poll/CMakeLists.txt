@@ -1,3 +1,3 @@
-project(01-ss-1th)
+project(04-ss-poll)
 
 add_executable(${PROJECT_NAME} main.cpp)

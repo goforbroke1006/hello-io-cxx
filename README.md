@@ -7,6 +7,8 @@ cmake ..
 make
 cd ..
 
+# bash ./run-demo.sh <server_app> <client_app> <concurrency>
+
 bash ./run-demo.sh \
   ./cmake-build-debug/01-ss-1th/01-ss-1th \
   ./cmake-build-debug/client/client \
@@ -19,6 +21,11 @@ bash ./run-demo.sh \
 
 bash ./run-demo.sh \
   ./cmake-build-debug/03-ss-select/03-ss-select \
+  ./cmake-build-debug/client/client \
+  10000
+
+bash ./run-demo.sh \
+  ./cmake-build-debug/04-ss-poll/04-ss-poll \
   ./cmake-build-debug/client/client \
   10000
 

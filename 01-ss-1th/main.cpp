@@ -8,7 +8,7 @@
 #include <netdb.h>      // gethostbyname()
 #include <unistd.h>     // close()
 
-#include "utils.h"
+#include "../utils.h"
 
 int main(int argc, char **argv) {
 
