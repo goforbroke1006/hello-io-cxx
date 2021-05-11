@@ -14,8 +14,6 @@
 
 bool serverRunning = true;
 
-ssize_t readFromClient(int clientSockFD);
-
 int main(int argc, char **argv) {
 
     auto appName = getAppName(argv);
@@ -122,7 +120,7 @@ int main(int argc, char **argv) {
                         max_sd = clientSock;
                     }
                 } else {
-                    if (readFromClient(i) == 0) {
+                    if (readFromClient(i, serverRunning) == 0) {
                         close(i);
                         FD_CLR (i, &master_set);
                     }
@@ -146,39 +144,4 @@ int main(int argc, char **argv) {
     std::cout << "server shutdowning..." << std::endl;
 
     return 0;
-}
-
-#define MAXMSG 2048
-
-ssize_t readFromClient(int clientSock) {
-    char buffer[MAXMSG];
-    ssize_t nbytes;
-    std::string command;
-    char *message = "pong\n";
-
-    nbytes = read(clientSock, buffer, MAXMSG);
-
-    if (nbytes < 0) {
-        perror("read");
-        exit(EXIT_FAILURE);
-    } else if (nbytes == 0)
-        /* End-of-file. */
-        return 0;
-    else {
-        command = buffer;
-        command = trim(command);
-        std::cout << "<<< " << command << std::endl;
-
-        if (command == "shutdown")
-            serverRunning = false;
-
-        if (command == "shutdown" || command == "exit") {
-            return 0;
-        }
-
-        send(clientSock, message, strlen(message), 0);
-        std::cout << ">>> " << message << std::endl;
-
-        return nbytes;
-    }
 }

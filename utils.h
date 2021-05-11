@@ -30,4 +30,37 @@ inline std::string &trim(std::string &s, const char *t = ws) {
     return ltrim(rtrim(s, t), t);
 }
 
+#define MAXMSG 2048
+
+ssize_t readFromClient(int clientSockFD, bool &serverRunning) {
+    char buffer[MAXMSG];
+    memset(buffer, 0, sizeof buffer);
+
+    std::string command;
+    std::string respMsg = "pong\n";
+
+    ssize_t nbytes = read(clientSockFD, buffer, MAXMSG);
+
+    if (nbytes <= 0) {
+        return nbytes;
+    }
+
+    command = buffer;
+    command = trim(command);
+    std::cout << "<<< " << command << std::endl;
+
+    if (command == "shutdown")
+        serverRunning = false;
+
+    if (command == "exit") {
+        close(clientSockFD);
+        return 0;
+    }
+
+    send(clientSockFD, respMsg.c_str(), respMsg.length(), 0);
+    std::cout << ">>> " << respMsg << std::endl;
+
+    return nbytes;
+}
+
 #endif //SERVER_SAMPLES_UTILS_H

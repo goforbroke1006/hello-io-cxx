@@ -14,8 +14,6 @@
 
 bool serverRunning = true;
 
-ssize_t readFromClient(int clientSockFD);
-
 int main(int argc, char **argv) {
 
     auto appName = getAppName(argv);
@@ -94,6 +92,7 @@ int main(int argc, char **argv) {
 
         if (nfds > 10000)
             nfds = 10000;
+
         if (nfds > startListen)
             startListen = nfds;
 
@@ -140,7 +139,7 @@ int main(int argc, char **argv) {
                     nfds++;
                 } while (clientSock != -1);
             } else {
-                ssize_t resLen = readFromClient(fds[i].fd);
+                ssize_t resLen = readFromClient(fds[i].fd, serverRunning);
                 if (resLen < 0) {
                     if (errno != EWOULDBLOCK) {
                         perror("recv() failed");
@@ -168,36 +167,4 @@ int main(int argc, char **argv) {
     std::cout << "server shutdowning..." << std::endl;
 
     return 0;
-}
-
-#define MAXMSG 2048
-
-ssize_t readFromClient(int clientSockFD) {
-    char buffer[MAXMSG];
-    ssize_t nbytes;
-    std::string command;
-    char *message = "pong\n";
-
-    nbytes = read(clientSockFD, buffer, MAXMSG);
-
-    if (nbytes <= 0) {
-        return nbytes;
-    }
-
-    command = buffer;
-    command = trim(command);
-    std::cout << "<<< " << command << std::endl;
-
-    if (command == "shutdown")
-        serverRunning = false;
-
-    if (command == "exit") {
-        close(clientSockFD);
-        return 0;
-    }
-
-    send(clientSockFD, message, strlen(message), 0);
-    std::cout << ">>> " << message << std::endl;
-
-    return nbytes;
 }
