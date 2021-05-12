@@ -47,6 +47,8 @@ Rejected:  2389
 Loose:     1969
 Duration Avg: 7923 millis
 Duration Max: 106442 millis
+mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
+7923,2314781992 434     21797   55226   106364,79
 ```
 
 #### 02-ss-5th
@@ -63,6 +65,8 @@ Rejected:  531
 Loose:     624
 Duration Avg: 3867 millis
 Duration Max: 102685 millis
+mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
+3867,8244205766 313     9560    27757,6 62035,12
 ```
 
 #### 03-ss-select
@@ -79,6 +83,9 @@ Rejected:  0
 Loose:     0
 Duration Avg: 326 millis
 Duration Max: 9634 millis
+mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
+326,1406        125     534     1088    7011
+
 ```
 
 #### 04-ss-poll
@@ -95,6 +102,8 @@ Rejected:  0
 Loose:     1
 Duration Avg: 1721 millis
 Duration Max: 4609 millis
+mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
+1721,0480048005 1727    3323,2  3446    3793
 ```
 
 
@@ -112,4 +121,6 @@ Rejected:  0
 Loose:     0
 Duration Avg: 1350 millis
 Duration Max: 3027 millis
+mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
+1350,4246       1564    2515    2673    2818,01
 ```

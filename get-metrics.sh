@@ -20,6 +20,7 @@ durationCount=0
 durationSum=0
 durationMax=0
 
+rm -f ./durations.log
 while read -r line; do
   duration=$(echo "${line}" | awk '{print $3}')
   if [ "$duration" -gt "$durationMax" ]; then
@@ -28,9 +29,13 @@ while read -r line; do
 
   durationCount=$((durationCount + 1))
   durationSum=$((durationSum + duration))
+
+  echo $duration >> ./durations.log
 done<<<$(cat "${FILENAME}" | grep 'SPEND TIME')
 
 durationAvg=$((durationSum / durationCount))
 
 echo "Duration Avg: ${durationAvg} millis"
 echo "Duration Max: ${durationMax} millis"
+
+datamash --header-out mean 1 median 1 perc:90 1 perc:95 1 perc:99 1 < ./durations.log
