@@ -41,12 +41,12 @@ bash get-metrics.sh 01-ss-1th-output.log
 
 ```txt
 Concurrency: 10000
-Logged:    6880
-Processed: 3460
-Rejected:  3420
-Loose:     3120
-Duration Avg: 400 millis
-Duration Max: 14700 millis
+Logged:    8031
+Processed: 5642
+Rejected:  2389
+Loose:     1969
+Duration Avg: 7923 millis
+Duration Max: 106442 millis
 ```
 
 #### 02-ss-5th
@@ -57,12 +57,12 @@ bash get-metrics.sh 02-ss-5th-output.log
 
 ```txt
 Concurrency: 10000
-Logged:    8855
-Processed: 7271
-Rejected:  1584
-Loose:     1145
-Duration Avg: 1695 millis
-Duration Max: 107322 millis
+Logged:    9376
+Processed: 8845
+Rejected:  531
+Loose:     624
+Duration Avg: 3867 millis
+Duration Max: 102685 millis
 ```
 
 #### 03-ss-select
