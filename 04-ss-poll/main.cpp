@@ -26,8 +26,8 @@ int main(int argc, char **argv) {
     char *serverHost = argv[1];
     int serverPort = atoi(argv[2]);
 
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket < 0) {
+    int listenFD = socket(AF_INET, SOCK_STREAM, 0);
+    if (listenFD < 0) {
         perror("socket() failed");
         exit(EXIT_FAILURE);
     }
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     /* Allow socket descriptor to be reuseable                   */
     /*************************************************************/
     int on = 1;
-    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0) {
+    if (setsockopt(listenFD, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0) {
         perror("setsockopt() failed");
         exit(EXIT_FAILURE);
     }
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     /* the incoming connections will also be nonblocking since   */
     /* they will inherit that state from the listening socket.   */
     /*************************************************************/
-    if (ioctl(serverSocket, FIONBIO, (char *) &on) < 0) {
+    if (ioctl(listenFD, FIONBIO, (char *) &on) < 0) {
         perror("ioctl() failed");
         exit(EXIT_FAILURE);
     }
@@ -65,17 +65,17 @@ int main(int argc, char **argv) {
     }
     memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
 
-    int bindRes = bind(serverSocket, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
+    int bindRes = bind(listenFD, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
     if (bindRes != 0) {
         perror("bind() failed");
-        close(serverSocket);
+        close(listenFD);
         exit(EXIT_FAILURE);
     }
 
-    int listenRes = listen(serverSocket, 128);
+    int listenRes = listen(listenFD, 128);
     if (0 != listenRes) {
         perror("listen() failed");
-        close(serverSocket);
+        close(listenFD);
         exit(EXIT_FAILURE);
     }
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
     int current_size = 0;
 
     memset(fds, 0, sizeof(fds));
-    fds[0].fd = serverSocket;
+    fds[0].fd = listenFD;
     fds[0].events = POLLIN;
 
     while (serverRunning) {
@@ -125,10 +125,10 @@ int main(int argc, char **argv) {
                 break;
             }
 
-            if (fds[i].fd == serverSocket) {
+            if (fds[i].fd == listenFD) {
                 int clientSock = 0;
                 do {
-                    clientSock = accept(serverSocket, nullptr, nullptr);
+                    clientSock = accept(listenFD, nullptr, nullptr);
                     if (clientSock < 0) {
                         if (errno != EWOULDBLOCK) {
                             perror("accept() failed");
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
     }
 
 
-    close(serverSocket);
+    close(listenFD);
     std::cout << "server shutdowning..." << std::endl;
 
     return 0;

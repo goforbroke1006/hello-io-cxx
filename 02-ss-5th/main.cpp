@@ -16,7 +16,7 @@ std::mutex acceptConnectionsMX;
 
 bool serverRunning = true;
 
-void process_client(int serverSock) {
+void process_client(int listenFD) {
     int clientSock;
     struct sockaddr_in clientSockAddr;
     int c = sizeof(struct sockaddr_in);
@@ -25,7 +25,7 @@ void process_client(int serverSock) {
     while (serverRunning) {
 
         acceptConnectionsMX.lock();
-        clientSock = accept(serverSock, (struct sockaddr *) &clientSockAddr, (socklen_t *) &c);
+        clientSock = accept(listenFD, (struct sockaddr *) &clientSockAddr, (socklen_t *) &c);
         acceptConnectionsMX.unlock();
 
         if (clientSock < 0) {
@@ -101,25 +101,23 @@ int main(int argc, char **argv) {
     memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
     // sockAddr.sin_addr.s_addr = INADDR_ANY;
 
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    int listenFD = socket(AF_INET, SOCK_STREAM, 0);
 
-    int bindRes = bind(serverSocket, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
-    if (bindRes != 0) {
+    if (bind(listenFD, (struct sockaddr *) (&sockAddr), sizeof(sockAddr)) != 0) {
         std::cerr << "can't bind socket to address" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    int listenRes = listen(serverSocket, 3);
-    if (0 != listenRes) {
+    if (listen(listenFD, 128) != 0) {
         std::cerr << "can't start socket listening" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    std::thread th1(process_client, serverSocket);
-    std::thread th2(process_client, serverSocket);
-    std::thread th3(process_client, serverSocket);
-    std::thread th4(process_client, serverSocket);
-    std::thread th5(process_client, serverSocket);
+    std::thread th1(process_client, listenFD);
+    std::thread th2(process_client, listenFD);
+    std::thread th3(process_client, listenFD);
+    std::thread th4(process_client, listenFD);
+    std::thread th5(process_client, listenFD);
 
     th1.join();
     th2.join();
@@ -127,7 +125,7 @@ int main(int argc, char **argv) {
     th4.join();
     th5.join();
 
-    close(serverSocket);
+    close(listenFD);
     std::cout << "server shutdowning..." << std::endl;
 
     return 0;

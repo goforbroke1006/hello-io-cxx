@@ -26,8 +26,8 @@ int main(int argc, char **argv) {
     char *serverHost = argv[1];
     int serverPort = atoi(argv[2]);
 
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket < 0) {
+    int listenFD = socket(AF_INET, SOCK_STREAM, 0);
+    if (listenFD < 0) {
         perror("socket");
         exit(EXIT_FAILURE);
     }
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     /* Allow socket descriptor to be reuseable                   */
     /*************************************************************/
     int on = 1;
-    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0) {
+    if (setsockopt(listenFD, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
     }
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     /* the incoming connections will also be nonblocking since   */
     /* they will inherit that state from the listening socket.   */
     /*************************************************************/
-    if (ioctl(serverSocket, FIONBIO, (char *) &on) < 0) {
+    if (ioctl(listenFD, FIONBIO, (char *) &on) < 0) {
         perror("ioctl");
         exit(EXIT_FAILURE);
     }
@@ -65,17 +65,17 @@ int main(int argc, char **argv) {
     }
     memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
 
-    int bindRes = bind(serverSocket, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
+    int bindRes = bind(listenFD, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
     if (bindRes != 0) {
         perror("bind");
-        close(serverSocket);
+        close(listenFD);
         exit(EXIT_FAILURE);
     }
 
-    int listenRes = listen(serverSocket, 128);
+    int listenRes = listen(listenFD, 128);
     if (0 != listenRes) {
         perror("listen");
-        close(serverSocket);
+        close(listenFD);
         exit(EXIT_FAILURE);
     }
 
@@ -84,8 +84,8 @@ int main(int argc, char **argv) {
     int max_sd;
 
     FD_ZERO(&masterSet);
-    max_sd = serverSocket;
-    FD_SET(serverSocket, &masterSet);
+    max_sd = listenFD;
+    FD_SET(listenFD, &masterSet);
 
     struct sockaddr_in clientName;
 
@@ -102,9 +102,9 @@ int main(int argc, char **argv) {
         for (int i = 0; i <= max_sd; ++i) {
             if (FD_ISSET(i, &workingSet)) {
 
-                if (i == serverSocket) {
+                if (i == listenFD) {
                     size_t size = sizeof(clientName);
-                    int clientSock = accept(serverSocket, (struct sockaddr *) &clientName, (socklen_t *) &size);
+                    int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
                     if (clientSock < 0) {
                         perror("accept");
                         break;
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     }
 
 
-    close(serverSocket);
+    close(listenFD);
     std::cout << "server shutdowning..." << std::endl;
 
     return 0;

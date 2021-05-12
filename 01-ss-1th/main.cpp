@@ -34,19 +34,19 @@ int main(int argc, char **argv) {
     memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
     // sockAddr.sin_addr.s_addr = INADDR_ANY;
 
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    int listenFD = socket(AF_INET, SOCK_STREAM, 0);
 
-    int bindRes = bind(serverSocket, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
-    if (bindRes != 0) {
+
+    if (bind(listenFD, (struct sockaddr *) (&sockAddr), sizeof(sockAddr)) != 0) {
         perror("bind() failed");
-        close(serverSocket);
+        close(listenFD);
         exit(EXIT_FAILURE);
     }
 
-    int listenRes = listen(serverSocket, 3);
-    if (0 != listenRes) {
+
+    if (listen(listenFD, 128) != 0) {
         perror("listen() failed");
-        close(serverSocket);
+        close(listenFD);
         exit(EXIT_FAILURE);
     }
 
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     int c = sizeof(struct sockaddr_in);
     char *message = "pong\n";
     for (;;) {
-        clientSock = accept(serverSocket, (struct sockaddr *) &clientSockAddr, (socklen_t *) &c);
+        clientSock = accept(listenFD, (struct sockaddr *) &clientSockAddr, (socklen_t *) &c);
         if (clientSock < 0) {
             perror("accept() failed");
             continue;
@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
             break;
     }
 
-    close(serverSocket);
+    close(listenFD);
 
     std::cout << "server shutdowning..." << std::endl;
 

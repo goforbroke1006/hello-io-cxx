@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    int epollfd = epoll_create1(0);
-    if (epollfd == -1) {
+    int epollFD = epoll_create1(0);
+    if (epollFD == -1) {
         perror("epoll_create() failed");
         close(listenFD);
         exit(EXIT_FAILURE);
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
     struct epoll_event event;
     event.data.fd = listenFD;
     event.events = EPOLLIN | EPOLLET;
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listenFD, &event) == -1) {
+    if (epoll_ctl(epollFD, EPOLL_CTL_ADD, listenFD, &event) == -1) {
         std::cerr << "[E] epoll_ctl failed\n";
         return 1;
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 
     while (serverRunning) {
 
-        int ready = epoll_wait(epollfd, events.data(), events.size(), -1);
+        int ready = epoll_wait(epollFD, events.data(), events.size(), -1);
         if (ready == -1) {
 //            perror("epoll_wait");
             continue;
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
                     }
                     event.data.fd = clientSock;
                     event.events = EPOLLIN | EPOLLET;
-                    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, clientSock, &event) == -1) {
+                    if (epoll_ctl(epollFD, EPOLL_CTL_ADD, clientSock, &event) == -1) {
                         perror("epoll_ctl() failed");
                         break;
                     }
