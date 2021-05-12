@@ -5,6 +5,8 @@
 #ifndef SERVER_SAMPLES_UTILS_H
 #define SERVER_SAMPLES_UTILS_H
 
+#include <cstring>
+
 std::string getAppName(char **argv) {
     std::string tmp(argv[0]);
     size_t found = tmp.find_last_of("/");

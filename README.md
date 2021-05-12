@@ -8,6 +8,7 @@ I/O frameworks comparison project.
 * **02-ss-5th** - multi-thread socket server, 5 threads, accept() wrapped with mutex, blocking socket usage
 * **03-ss-select** - with select() sys-call, non-blocking socket usage
 * **04-ss-poll** - with poll() sys-call, non-blocking socket usage
+* **05-ss-epoll** - with epoll() sys-call, non-blocking socket usage
 
 ### How to run demos
 
@@ -24,6 +25,7 @@ bash ./run-demo.sh ./cmake-build-debug/01-ss-1th/01-ss-1th ./cmake-build-debug/c
 bash ./run-demo.sh ./cmake-build-debug/02-ss-5th/02-ss-5th ./cmake-build-debug/client/client 10000
 bash ./run-demo.sh ./cmake-build-debug/03-ss-select/03-ss-select ./cmake-build-debug/client/client 10000
 bash ./run-demo.sh ./cmake-build-debug/04-ss-poll/04-ss-poll ./cmake-build-debug/client/client 10000
+bash ./run-demo.sh ./cmake-build-debug/05-ss-epoll/05-ss-epoll ./cmake-build-debug/client/client 10000
 
 ```
 
@@ -75,8 +77,8 @@ Logged:    10000
 Processed: 10000
 Rejected:  0
 Loose:     0
-Duration Avg: 184 millis
-Duration Max: 14880 millis
+Duration Avg: 326 millis
+Duration Max: 9634 millis
 ```
 
 #### 04-ss-poll
@@ -91,6 +93,23 @@ Logged:    9999
 Processed: 9999
 Rejected:  0
 Loose:     1
-Duration Avg: 592 millis
-Duration Max: 15973 millis
+Duration Avg: 1721 millis
+Duration Max: 4609 millis
+```
+
+
+#### 05-ss-epoll
+
+```bash
+bash get-metrics.sh 05-ss-epoll-output.log
+```
+
+```txt
+Concurrency: 10000
+Logged:    9465
+Processed: 9465
+Rejected:  0
+Loose:     535
+Duration Avg: 994 millis
+Duration Max: 77313 millis
 ```

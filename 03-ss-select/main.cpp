@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    int listenRes = listen(serverSocket, 32);
+    int listenRes = listen(serverSocket, 128);
     if (0 != listenRes) {
         perror("listen");
         close(serverSocket);
