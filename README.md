@@ -106,10 +106,10 @@ bash get-metrics.sh 05-ss-epoll-output.log
 
 ```txt
 Concurrency: 10000
-Logged:    9465
-Processed: 9465
+Logged:    10000
+Processed: 10000
 Rejected:  0
-Loose:     535
-Duration Avg: 994 millis
-Duration Max: 77313 millis
+Loose:     0
+Duration Avg: 1350 millis
+Duration Max: 3027 millis
 ```
