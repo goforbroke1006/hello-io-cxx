@@ -32,6 +32,69 @@ inline std::string &trim(std::string &s, const char *t = ws) {
     return ltrim(rtrim(s, t), t);
 }
 
+
+#include <netinet/in.h> // sockaddr_in{} socket()
+#include <netdb.h>      // gethostbyname()
+#include <sys/ioctl.h>  // FIONBIO
+#include <unistd.h>     // close()
+
+int openSocketNonBlocking(const std::string& host,  int port) {
+    int listenFD = socket(AF_INET, SOCK_STREAM, 0);
+    if (listenFD < 0) {
+        perror("  socket() failed");
+        exit(EXIT_FAILURE);
+    }
+
+    /*************************************************************/
+    /* Allow socket descriptor to be reuseable                   */
+    /*************************************************************/
+    int on = 1;
+    if (setsockopt(listenFD, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0) {
+        perror(" setsockopt() failed");
+        exit(EXIT_FAILURE);
+    }
+
+    /*************************************************************/
+    /* Set socket to be nonblocking. All of the sockets for      */
+    /* the incoming connections will also be nonblocking since   */
+    /* they will inherit that state from the listening socket.   */
+    /*************************************************************/
+    if (ioctl(listenFD, FIONBIO, (char *) &on) < 0) {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * Prepare sock addr and bind socket on it
+     */
+    struct sockaddr_in sockAddr;
+    sockAddr.sin_family = AF_INET;
+    sockAddr.sin_port = htons(port);
+
+    auto he = gethostbyname(host.c_str());
+    if (nullptr == he) {
+        perror("gethostbyname");
+        exit(EXIT_FAILURE);
+    }
+    memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
+
+    int bindRes = bind(listenFD, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
+    if (bindRes != 0) {
+        perror("bind");
+        close(listenFD);
+        exit(EXIT_FAILURE);
+    }
+
+    int listenRes = listen(listenFD, 128);
+    if (0 != listenRes) {
+        perror("listen");
+        close(listenFD);
+        exit(EXIT_FAILURE);
+    }
+
+    return listenFD;
+}
+
 #define MAXMSG 2048
 
 ssize_t readFromClient(int clientSockFD, bool &serverRunning, bool &clientDisconnected) {

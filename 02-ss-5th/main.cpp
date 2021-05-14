@@ -20,7 +20,7 @@ void process_client(int listenFD) {
     int clientSock;
     struct sockaddr_in clientSockAddr;
     int c = sizeof(struct sockaddr_in);
-    char *message = "pong\n";
+    std::string message = "pong\n";
 
     while (serverRunning) {
 
@@ -41,7 +41,7 @@ void process_client(int listenFD) {
         for (;;) {
 
             memset(income, 0, sizeof income);
-            size_t readLen = read(clientSock, income, sizeof income);
+            ssize_t readLen = read(clientSock, income, sizeof income);
             if (readLen == 0) {
                 close(clientSock);
                 continue;
@@ -64,7 +64,7 @@ void process_client(int listenFD) {
                 break;
             }
 
-            send(clientSock, message, strlen(message), 0);
+            send(clientSock, message.c_str(), message.length(), 0);
             std::cout << ">>> " << message << std::endl;
         }
 

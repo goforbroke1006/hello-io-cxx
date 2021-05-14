@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     int clientSock;
     struct sockaddr_in clientSockAddr;
     int c = sizeof(struct sockaddr_in);
-    char *message = "pong\n";
+    std::string message = "pong\n";
     for (;;) {
         clientSock = accept(listenFD, (struct sockaddr *) &clientSockAddr, (socklen_t *) &c);
         if (clientSock < 0) {
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
         for (;;) {
 
             memset(income, 0, sizeof(income));
-            size_t readLen = read(clientSock, income, sizeof income);
+            ssize_t readLen = read(clientSock, income, sizeof income);
             if (readLen < 0) {
                 std::cerr << "can't read client message" << std::endl;
                 continue;
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
             if (command == "exit" || command == "shutdown")
                 break;
 
-            send(clientSock, message, strlen(message), 0);
+            send(clientSock, message.c_str(), message.length(), 0);
             std::cout << ">>> " << message << std::endl;
         }
 

@@ -8,7 +8,7 @@
 #include <netdb.h>      // gethostbyname()
 #include <unistd.h>     // close()
 #include <sys/select.h> // fd_set{}
-#include <sys/ioctl.h>  // FIONBIO
+
 
 #include "../utils.h"
 
@@ -26,59 +26,7 @@ int main(int argc, char **argv) {
     char *serverHost = argv[1];
     int serverPort = atoi(argv[2]);
 
-    int listenFD = socket(AF_INET, SOCK_STREAM, 0);
-    if (listenFD < 0) {
-        perror("socket");
-        exit(EXIT_FAILURE);
-    }
-
-    /*************************************************************/
-    /* Allow socket descriptor to be reuseable                   */
-    /*************************************************************/
-    int on = 1;
-    if (setsockopt(listenFD, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0) {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
-
-    /*************************************************************/
-    /* Set socket to be nonblocking. All of the sockets for      */
-    /* the incoming connections will also be nonblocking since   */
-    /* they will inherit that state from the listening socket.   */
-    /*************************************************************/
-    if (ioctl(listenFD, FIONBIO, (char *) &on) < 0) {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-
-    /*
-     * Prepare sock addr and bind socket on it
-     */
-    struct sockaddr_in sockAddr;
-    sockAddr.sin_family = AF_INET;
-    sockAddr.sin_port = htons(serverPort);
-
-    auto he = gethostbyname(serverHost);
-    if (nullptr == he) {
-        perror("gethostbyname");
-        exit(EXIT_FAILURE);
-    }
-    memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
-
-    int bindRes = bind(listenFD, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
-    if (bindRes != 0) {
-        perror("bind");
-        close(listenFD);
-        exit(EXIT_FAILURE);
-    }
-
-    int listenRes = listen(listenFD, 128);
-    if (0 != listenRes) {
-        perror("listen");
-        close(listenFD);
-        exit(EXIT_FAILURE);
-    }
-
+    int listenFD = openSocketNonBlocking(serverHost, serverPort);
 
     fd_set masterSet, workingSet;
     int max_sd;

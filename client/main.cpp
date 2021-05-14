@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 //        std::cout << "<<< " << text << std::endl;
 
         memset(buffer, 0, sizeof buffer);
-        size_t valread = recv(sockfd, buffer, 1024, 0);
+        /*size_t valread = */recv(sockfd, buffer, 1024, 0);
 //        std::cout << ">>> (" << valread << "): " << buffer << std::endl;
     }
 

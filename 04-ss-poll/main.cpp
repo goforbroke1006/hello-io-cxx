@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 
     struct pollfd fds[10000];
     int nfds = 1, startListen = 10000;
-    int current_size = 0;
+//    int current_size = 0;
 
     memset(fds, 0, sizeof(fds));
     fds[0].fd = listenFD;

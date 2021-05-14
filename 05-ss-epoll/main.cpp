@@ -93,17 +93,12 @@ int main(int argc, char **argv) {
     }
 
     int clientSock;
-    struct sockaddr_storage clientsAddrs;
-    socklen_t clientsAddrsSize = sizeof(clientsAddrs);
-
-//    struct epoll_event events[INCOME_BANDWIDTH];
-    std::array<struct epoll_event, INCOME_BANDWIDTH> events;
+    std::array<struct epoll_event, INCOME_BANDWIDTH> events = {};
 
     while (serverRunning) {
 
         int ready = epoll_wait(epollFD, events.data(), events.size(), -1);
         if (ready == -1) {
-//            perror("epoll_wait");
             continue;
         }
 
