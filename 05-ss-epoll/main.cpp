@@ -6,12 +6,11 @@
 #include <netinet/in.h> // sockaddr_in{} socket()
 #include <unistd.h>     // close()
 #include <sys/epoll.h>  // epoll_create()
-#include <fcntl.h>
 #include <array>
 
 #include "../utils.h"
 
-#define MY_INCOME_BANDWIDTH 10000
+#define MY_INCOME_BANDWIDTH 2500
 
 bool serverRunning = true;
 
@@ -29,7 +28,7 @@ int main(int argc, char **argv) {
 
     int epollFD = epoll_create1(0);
     if (epollFD == -1) {
-        perror("epoll_create() failed");
+        perror("  epoll_create() failed");
         close(listenFD);
         exit(EXIT_FAILURE);
     }
@@ -38,9 +37,10 @@ int main(int argc, char **argv) {
     event.data.fd = listenFD;
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epollFD, EPOLL_CTL_ADD, listenFD, &event) == -1) {
-        std::cerr << "[E] epoll_ctl failed\n";
-        return 1;
-
+        perror("  epoll_ctl() failed");
+        close(epollFD);
+        close(listenFD);
+        exit(EXIT_FAILURE);
     }
 
     int clientSock;
@@ -62,38 +62,51 @@ int main(int argc, char **argv) {
             }
 
             if (events[i].data.fd == listenFD) {
-                do {
+                while(true) {
                     struct sockaddr in_addr;
                     socklen_t in_len = sizeof(in_addr);
                     clientSock = accept(listenFD, &in_addr, &in_len);
                     if (clientSock == -1) {
-//                        perror("accept() client failed");
-                        continue;
+                        if (errno != EWOULDBLOCK) {
+                            perror("  accept() client failed");
+                            serverRunning = false;
+                        }
+                        break;
                     }
                     if (!makeSocketNonblocking(clientSock)) {
-                        perror("make_socket_nonblocking() failed");
-                        continue;
+                        perror("  makeSocketNonblocking() failed");
+                        serverRunning = false;
+                        break;
                     }
                     event.data.fd = clientSock;
                     event.events = EPOLLIN | EPOLLET;
                     if (epoll_ctl(epollFD, EPOLL_CTL_ADD, clientSock, &event) == -1) {
-                        perror("epoll_ctl() failed");
+                        perror("  epoll_ctl() failed");
                         break;
                     }
-                } while (clientSock != -1);
+
+                    std::cout << "[server] new client " << clientSock << std::endl;
+                }
             } else {
                 bool cd = false;
                 readFromClient(events[i].data.fd, serverRunning, cd);
                 if (cd) {
-                    close(clientSock);
+                    close(events[i].data.fd);
+                    std::cout << "[server] close client " << events[i].data.fd << std::endl;
                 }
             }
         }
     }
 
+    for (const auto &e : events) {
+        if (e.data.fd > 0)
+            close(e.data.fd);
+    }
+
+    close(epollFD);
     close(listenFD);
 
-    std::cout << "server shutdowning..." << std::endl;
+    std::cout << "[server] shutdown..." << std::endl;
 
     return 0;
 }

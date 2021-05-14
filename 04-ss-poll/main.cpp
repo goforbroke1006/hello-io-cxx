@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
 
 
     close(listenFD);
-    std::cout << "server shutdown..." << std::endl;
+    std::cout << "[server] shutdown..." << std::endl;
 
     return 0;
 }
