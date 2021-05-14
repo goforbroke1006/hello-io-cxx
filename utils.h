@@ -37,8 +37,46 @@ inline std::string &trim(std::string &s, const char *t = ws) {
 #include <netdb.h>      // gethostbyname()
 #include <sys/ioctl.h>  // FIONBIO
 #include <unistd.h>     // close()
+#include <fcntl.h>      // F_GETFL
 
-int openSocketNonBlocking(const std::string& host,  int port) {
+bool makeSocketNonblocking1(int socketFD) {
+    int on = 1;
+
+    /*************************************************************/
+    /* Set socket to be nonblocking. All of the sockets for      */
+    /* the incoming connections will also be nonblocking since   */
+    /* they will inherit that state from the listening socket.   */
+    /*************************************************************/
+    if (ioctl(socketFD, FIONBIO, (char *) &on) < 0) {
+        std::cerr << "[E] ioctl failed" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool makeSocketNonblocking2(int socketFD) {
+    int flags = fcntl(socketFD, F_GETFL, 0);
+    if (flags == -1) {
+        std::cerr << "[E] fcntl failed (F_GETFL)\n";
+        return false;
+    }
+
+    flags |= O_NONBLOCK;
+    int s = fcntl(socketFD, F_SETFL, flags);
+    if (s == -1) {
+        std::cerr << "[E] fcntl failed (F_SETFL)\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool makeSocketNonblocking(int socketFD) {
+    return makeSocketNonblocking1(socketFD) && makeSocketNonblocking2(socketFD);
+}
+
+inline int createSocketNonBlocking(const std::string &host, int port) {
     int listenFD = socket(AF_INET, SOCK_STREAM, 0);
     if (listenFD < 0) {
         perror("  socket() failed");
@@ -54,13 +92,8 @@ int openSocketNonBlocking(const std::string& host,  int port) {
         exit(EXIT_FAILURE);
     }
 
-    /*************************************************************/
-    /* Set socket to be nonblocking. All of the sockets for      */
-    /* the incoming connections will also be nonblocking since   */
-    /* they will inherit that state from the listening socket.   */
-    /*************************************************************/
-    if (ioctl(listenFD, FIONBIO, (char *) &on) < 0) {
-        perror("ioctl");
+    if (!makeSocketNonblocking(listenFD)) {
+        perror(" makeSocketNonblocking() failed");
         exit(EXIT_FAILURE);
     }
 
@@ -71,23 +104,27 @@ int openSocketNonBlocking(const std::string& host,  int port) {
     sockAddr.sin_family = AF_INET;
     sockAddr.sin_port = htons(port);
 
-    auto he = gethostbyname(host.c_str());
-    if (nullptr == he) {
-        perror("gethostbyname");
-        exit(EXIT_FAILURE);
+    if (host.empty()) {
+        sockAddr.sin_addr.s_addr = INADDR_ANY;
+    } else {
+        auto he = gethostbyname(host.c_str());
+        if (nullptr == he) {
+            perror("  gethostbyname() failed");
+            exit(EXIT_FAILURE);
+        }
+        memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
     }
-    memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
 
     int bindRes = bind(listenFD, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
     if (bindRes != 0) {
-        perror("bind");
+        perror("  bind() failed");
         close(listenFD);
         exit(EXIT_FAILURE);
     }
 
     int listenRes = listen(listenFD, 128);
     if (0 != listenRes) {
-        perror("listen");
+        perror("  listen() failed");
         close(listenFD);
         exit(EXIT_FAILURE);
     }

@@ -15,7 +15,7 @@ fi
 if [[ -z $CONCURRENCY ]]; then CONCURRENCY=100; fi
 
 # constants
-SERVER_PORT=12000
+SERVER_PORT=12002
 SERVER_TARGET=$(basename "$SERVER_BINARY")
 LOG_FILENAME=./${SERVER_TARGET}-output.log
 

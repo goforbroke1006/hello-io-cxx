@@ -119,8 +119,8 @@ Logged:    10000
 Processed: 10000
 Rejected:  0
 Loose:     0
-Duration Avg: 1350 millis
-Duration Max: 3027 millis
+Duration Avg: 1266 millis
+Duration Max: 3255 millis
 mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
-1350,4246       1564    2515    2673    2818,01
+1266,9826       1174,5  2218    2827    3121
 ```

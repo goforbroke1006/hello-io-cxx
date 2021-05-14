@@ -11,26 +11,9 @@
 
 #include "../utils.h"
 
-#define INCOME_BANDWIDTH 10000
+#define MY_INCOME_BANDWIDTH 10000
 
 bool serverRunning = true;
-
-auto make_socket_nonblocking(int socketfd) {
-    int flags = fcntl(socketfd, F_GETFL, 0);
-    if (flags == -1) {
-        std::cerr << "[E] fcntl failed (F_GETFL)\n";
-        return false;
-    }
-
-    flags |= O_NONBLOCK;
-    int s = fcntl(socketfd, F_SETFL, flags);
-    if (s == -1) {
-        std::cerr << "[E] fcntl failed (F_SETFL)\n";
-        return false;
-    }
-
-    return true;
-}
 
 int main(int argc, char **argv) {
     auto appName = getAppName(argv);
@@ -42,39 +25,7 @@ int main(int argc, char **argv) {
     std::string serverHost = argv[1];
     int serverPort = atoi(argv[2]);
 
-    int listenFD = socket(AF_INET, SOCK_STREAM, 0);
-    if (listenFD < 0) {
-        perror("socket() failed");
-        exit(EXIT_FAILURE);
-    }
-
-    if (!::make_socket_nonblocking(listenFD)) {
-        perror("make_socket_nonblocking() failed");
-        return 1;
-    }
-
-    struct sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(serverPort);
-
-    int yes = 1;
-    if (setsockopt(listenFD, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) != 0) {
-        perror("setsockopt() failed");
-        exit(EXIT_FAILURE);
-    }
-
-    if (bind(listenFD, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) != 0) {
-        perror("bind() failed");
-        close(listenFD);
-        exit(EXIT_FAILURE);
-    }
-
-    if (listen(listenFD, 128) != 0) {
-        perror("listen() failed");
-        close(listenFD);
-        exit(EXIT_FAILURE);
-    }
+    int listenFD = createSocketNonBlocking(serverHost, serverPort);
 
     int epollFD = epoll_create1(0);
     if (epollFD == -1) {
@@ -93,7 +44,7 @@ int main(int argc, char **argv) {
     }
 
     int clientSock;
-    std::array<struct epoll_event, INCOME_BANDWIDTH> events = {};
+    std::array<struct epoll_event, MY_INCOME_BANDWIDTH> events = {};
 
     while (serverRunning) {
 
@@ -119,7 +70,7 @@ int main(int argc, char **argv) {
 //                        perror("accept() client failed");
                         continue;
                     }
-                    if (!make_socket_nonblocking(clientSock)) {
+                    if (!makeSocketNonblocking(clientSock)) {
                         perror("make_socket_nonblocking() failed");
                         continue;
                     }

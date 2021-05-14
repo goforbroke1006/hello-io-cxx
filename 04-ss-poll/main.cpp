@@ -3,16 +3,16 @@
 //
 
 #include <iostream>
+#include <string>
 #include <cstring>
-#include <netinet/in.h> // sockaddr_in{} socket()
-#include <netdb.h>      // gethostbyname()
 #include <unistd.h>     // close()
-#include <sys/ioctl.h>  // FIONBIO
 #include <sys/poll.h>   // pollfd{}
 
 #include "../utils.h"
 
 bool serverRunning = true;
+
+#define MY_INCOME_BANDWIDTH 10000
 
 int main(int argc, char **argv) {
 
@@ -23,62 +23,10 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    char *serverHost = argv[1];
+    std::string serverHost = argv[1];
     int serverPort = atoi(argv[2]);
 
-    int listenFD = socket(AF_INET, SOCK_STREAM, 0);
-    if (listenFD < 0) {
-        perror("socket() failed");
-        exit(EXIT_FAILURE);
-    }
-
-    /*************************************************************/
-    /* Allow socket descriptor to be reuseable                   */
-    /*************************************************************/
-    int on = 1;
-    if (setsockopt(listenFD, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0) {
-        perror("setsockopt() failed");
-        exit(EXIT_FAILURE);
-    }
-
-    /*************************************************************/
-    /* Set socket to be nonblocking. All of the sockets for      */
-    /* the incoming connections will also be nonblocking since   */
-    /* they will inherit that state from the listening socket.   */
-    /*************************************************************/
-    if (ioctl(listenFD, FIONBIO, (char *) &on) < 0) {
-        perror("ioctl() failed");
-        exit(EXIT_FAILURE);
-    }
-
-    /*
-     * Prepare sock addr and bind socket on it
-     */
-    struct sockaddr_in sockAddr;
-    sockAddr.sin_family = AF_INET;
-    sockAddr.sin_port = htons(serverPort);
-
-    auto he = gethostbyname(serverHost);
-    if (nullptr == he) {
-        perror("gethostbyname() failed");
-        exit(EXIT_FAILURE);
-    }
-    memcpy(&sockAddr.sin_addr, he->h_addr_list[0], he->h_length);
-
-    int bindRes = bind(listenFD, (struct sockaddr *) (&sockAddr), sizeof(sockAddr));
-    if (bindRes != 0) {
-        perror("bind() failed");
-        close(listenFD);
-        exit(EXIT_FAILURE);
-    }
-
-    int listenRes = listen(listenFD, 128);
-    if (0 != listenRes) {
-        perror("listen() failed");
-        close(listenFD);
-        exit(EXIT_FAILURE);
-    }
-
+    int listenFD = createSocketNonBlocking(serverHost, serverPort);
 
     struct pollfd fds[10000];
     int nfds = 1, startListen = 10000;
@@ -131,7 +79,7 @@ int main(int argc, char **argv) {
                     clientSock = accept(listenFD, nullptr, nullptr);
                     if (clientSock < 0) {
                         if (errno != EWOULDBLOCK) {
-                            perror("accept() failed");
+                            perror("  accept() failed");
                             serverRunning = false;
                         }
                         break;
@@ -149,7 +97,7 @@ int main(int argc, char **argv) {
                 if (resLen < 0) {
                     if (errno != EWOULDBLOCK) {
                         std::cerr << "i=" << i << " fd=" << fds[i].fd << std::endl;
-                        perror("recv() failed");
+                        perror("  recv() failed");
                         serverRunning = false;
                     }
                     break;
@@ -171,7 +119,7 @@ int main(int argc, char **argv) {
 
 
     close(listenFD);
-    std::cout << "server shutdowning..." << std::endl;
+    std::cout << "server shutdown..." << std::endl;
 
     return 0;
 }
