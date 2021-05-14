@@ -12,7 +12,7 @@
 
 bool serverRunning = true;
 
-#define MY_INCOME_BANDWIDTH 10000
+#define MY_INCOME_BANDWIDTH 2500
 
 int main(int argc, char **argv) {
 
@@ -28,9 +28,8 @@ int main(int argc, char **argv) {
 
     int listenFD = createSocketNonBlocking(serverHost, serverPort);
 
-    struct pollfd fds[10000];
-    int nfds = 1, startListen = 10000;
-//    int current_size = 0;
+    struct pollfd fds[MY_INCOME_BANDWIDTH];
+    const int nfds = MY_INCOME_BANDWIDTH - 1;
 
     memset(fds, 0, sizeof(fds));
     fds[0].fd = listenFD;
@@ -38,22 +37,13 @@ int main(int argc, char **argv) {
 
     while (serverRunning) {
 
-        if (nfds > 10000)
-            nfds = 10000;
-
-        if (nfds > startListen)
-            startListen = nfds;
-
-        int pollRes = poll(fds, startListen, 0);
-//        int pollRes = poll(fds, nfds, 0);
+        int pollRes = poll(fds, nfds, 0);
         if (pollRes < 0) {
             perror("poll() failed");
             serverRunning = false;
         }
 
-//        current_size = nfds;
-//        for (int i = 0; i < current_size; i++) {
-        for (int i = 0; i < startListen; i++) {
+        for (int i = 0; i < nfds; i++) {
 
             /*********************************************************/
             /* Loop through to find the descriptors that returned    */
@@ -75,7 +65,14 @@ int main(int argc, char **argv) {
 
             if (fds[i].fd == listenFD) {
                 int clientSock = 0;
+                int nextTryIndex = 0;
                 do {
+
+                    if (nextTryIndex + 1 >= MY_INCOME_BANDWIDTH) {
+                        std::cout << "[server] descriptors count exceeded..." << std::endl;
+                        break; // has no free descriptors, have to wait another client finish communication
+                    }
+
                     clientSock = accept(listenFD, nullptr, nullptr);
                     if (clientSock < 0) {
                         if (errno != EWOULDBLOCK) {
@@ -84,14 +81,26 @@ int main(int argc, char **argv) {
                         }
                         break;
                     }
-                    fds[nfds].fd = clientSock;
-                    fds[nfds].events = POLLIN;
-                    nfds++;
+                    std::cout << "[server] new client " << clientSock << std::endl;
+
+                    // look for next free descriptor slot
+                    for (int fi = nextTryIndex; fi < MY_INCOME_BANDWIDTH; ++fi) {
+                        if (fds[fi].fd <= 0) {
+                            fds[fi].fd = clientSock;
+                            fds[fi].events = POLLIN;
+                            nextTryIndex = fi + 1;
+                            break;
+                        }
+                    }
+
                 } while (clientSock != -1);
+            } else if (fds[i].fd == -1) {
+                continue;
             } else {
                 bool cd = false;
                 ssize_t resLen = readFromClient(fds[i].fd, serverRunning, cd);
                 if (cd) {
+                    std::cout << "[server] close client " << fds[i].fd << std::endl;
                     fds[i].fd = -1;
                 }
                 if (resLen < 0) {

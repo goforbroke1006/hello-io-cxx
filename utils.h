@@ -154,7 +154,7 @@ ssize_t readFromClient(int clientSockFD, bool &serverRunning, bool &clientDiscon
 
     command = buffer;
     command = trim(command);
-    std::cout << "<<< " << command << std::endl;
+//    std::cout << "<<< " << command << std::endl;
 
     if (command == "shutdown")
         serverRunning = false;
@@ -166,7 +166,7 @@ ssize_t readFromClient(int clientSockFD, bool &serverRunning, bool &clientDiscon
     }
 
     send(clientSockFD, respMsg.c_str(), respMsg.length(), 0);
-    std::cout << ">>> " << respMsg << std::endl;
+//    std::cout << ">>> " << respMsg << std::endl;
 
     return nbytes;
 }

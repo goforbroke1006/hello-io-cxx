@@ -96,14 +96,14 @@ bash get-metrics.sh 04-ss-poll-output.log
 
 ```txt
 Concurrency: 10000
-Logged:    9999
-Processed: 9999
+Logged:    10000
+Processed: 10000
 Rejected:  0
-Loose:     1
-Duration Avg: 1721 millis
-Duration Max: 4609 millis
+Loose:     0
+Duration Avg: 226 millis
+Duration Max: 952 millis
 mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
-1721,0480048005 1727    3323,2  3446    3793
+226,3994        56      786     848     899
 ```
 
 
