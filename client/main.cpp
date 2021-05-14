@@ -12,6 +12,10 @@
 #include <unistd.h>     // close(fd)
 #include <chrono>
 
+#include "../utils.h"
+
+#define BUFFER_SIZE 1024
+
 int main(int argc, char **argv) {
     if (argc != 3) {
         std::cerr << "Usage: ./client 0.0.0.0 8080" << std::endl;
@@ -56,17 +60,42 @@ int main(int argc, char **argv) {
             "exit",
     };
 
-    char buffer[1024] = {0};
+    char buffer[BUFFER_SIZE];
 
     auto startSpan = std::chrono::high_resolution_clock::now();
+    std::string response;
 
     for (const auto &msg : messages) {
-        const char *text = msg.c_str();
-        send(sockfd, text, strlen(text), 0);
-//        std::cout << "<<< " << text << std::endl;
+        ssize_t sendLen = send(sockfd, msg.c_str(), msg.length(), 0);
+        if (sendLen < 0) {
+            perror("  send() failed");
+            exit(EXIT_FAILURE);
+        }
+        if (((size_t) sendLen) != msg.length()) {
+            std::cerr << "  Unexpected sent message length: got " << sendLen << " want " << msg.length() << std::endl;
+            exit(EXIT_FAILURE);
+        }
 
-        memset(buffer, 0, sizeof buffer);
-        /*size_t valread = */recv(sockfd, buffer, 1024, 0);
+        memset(buffer, 0, sizeof(buffer));
+        ssize_t recvLen = recv(sockfd, buffer, 1024, 0);
+
+        if (recvLen < 0) {
+            perror("  recv() failed");
+            exit(EXIT_FAILURE);
+        }
+        if (recvLen == 0) {
+            // communication finished
+            close(sockfd);
+            break;
+        }
+
+        response = buffer;
+        response = trim(response);
+
+        if ("pong" != response) {
+            std::cerr << "Unexpected response: \"" << response << "\"" << std::endl;
+            exit(EXIT_FAILURE);
+        }
 //        std::cout << ">>> (" << valread << "): " << buffer << std::endl;
     }
 

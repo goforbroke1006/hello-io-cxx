@@ -97,10 +97,11 @@ int main(int argc, char **argv) {
             } else if (fds[i].fd == -1) {
                 continue;
             } else {
-                bool cd = false;
-                ssize_t resLen = readFromClient(fds[i].fd, serverRunning, cd);
-                if (cd) {
+                bool clientIsDisconnected = false;
+                ssize_t resLen = readFromClient(fds[i].fd, serverRunning, clientIsDisconnected);
+                if (clientIsDisconnected) {
                     std::cout << "[server] close client " << fds[i].fd << std::endl;
+                    close(fds[i].fd);
                     fds[i].fd = -1;
                 }
                 if (resLen < 0) {
@@ -108,8 +109,8 @@ int main(int argc, char **argv) {
                         std::cerr << "i=" << i << " fd=" << fds[i].fd << std::endl;
                         perror("  recv() failed");
                         serverRunning = false;
+                        break;
                     }
-                    break;
                 }
             }
 

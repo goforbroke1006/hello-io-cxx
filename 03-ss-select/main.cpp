@@ -12,7 +12,7 @@
 
 bool serverRunning = true;
 
-#define MY_INCOME_BANDWIDTH 10000
+#define MY_INCOME_BANDWIDTH 2500
 
 int main(int argc, char **argv) {
 
@@ -35,15 +35,15 @@ int main(int argc, char **argv) {
 
     struct sockaddr_in clientName;
 
-    int nfds = listenFD + MY_INCOME_BANDWIDTH / 2;
+    const int nfds = listenFD + MY_INCOME_BANDWIDTH;
     int maxFDIndex = listenFD + 1;
 
     while (serverRunning) {
 
-        if (maxFDIndex > nfds)
-            nfds = maxFDIndex;
-        if (nfds > listenFD + MY_INCOME_BANDWIDTH)
-            nfds = listenFD + MY_INCOME_BANDWIDTH;
+//        if (maxFDIndex > nfds)
+//            nfds = maxFDIndex;
+//        if (nfds > listenFD + MY_INCOME_BANDWIDTH)
+//            nfds = listenFD + MY_INCOME_BANDWIDTH;
 
         memcpy(&workingSet, &masterSet, sizeof(masterSet));
 
@@ -53,10 +53,10 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-        for (int i = listenFD; i <= listenFD + readyDescriptorsNumber; ++i) {
-            if (FD_ISSET(i, &workingSet)) {
+        for (int clientFD = listenFD; clientFD <= nfds; ++clientFD) {
+            if (FD_ISSET(clientFD, &workingSet)) {
 
-                if (i == listenFD) {
+                if (clientFD == listenFD) {
                     size_t size = sizeof(clientName);
                     int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
                     if (clientSock < 0) {
@@ -67,12 +67,25 @@ int main(int argc, char **argv) {
                     if (clientSock > maxFDIndex) {
                         maxFDIndex = clientSock;
                     }
+                    std::cout << "[server] new client " << clientSock << std::endl;
+                } else if (clientFD == -1) {
+                    continue;
                 } else {
-                    bool cd = false;
-                    readFromClient(i, serverRunning, cd);
-                    if (cd) {
-                        FD_CLR(i, &masterSet);
+                    bool clientIsDisconnected = false;
+                    /*ssize_t resLen =*/ readFromClient(clientFD, serverRunning, clientIsDisconnected);
+                    if (clientIsDisconnected) {
+                        FD_CLR(clientFD, &masterSet);
+                        close(clientFD);
+                        std::cout << "[server] close client " << clientFD << std::endl;
                     }
+//                    if (resLen < 0) {
+//                        if (errno != EWOULDBLOCK) {
+//                            std::cerr << "i=" << clientFD << " fd=" << clientFD << std::endl;
+//                            perror("  recv() failed");
+//                            serverRunning = false;
+//                            break;
+//                        }
+//                    }
                 }
 
             }

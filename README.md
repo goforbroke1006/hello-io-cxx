@@ -81,11 +81,10 @@ Logged:    10000
 Processed: 10000
 Rejected:  0
 Loose:     0
-Duration Avg: 326 millis
-Duration Max: 9634 millis
+Duration Avg: 550 millis
+Duration Max: 16032 millis
 mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
-326,1406        125     534     1088    7011
-
+550,9954        166     983     2190    8553,05
 ```
 
 #### 04-ss-poll
@@ -100,10 +99,10 @@ Logged:    10000
 Processed: 10000
 Rejected:  0
 Loose:     0
-Duration Avg: 226 millis
-Duration Max: 952 millis
+Duration Avg: 389 millis
+Duration Max: 1629 millis
 mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
-226,3994        56      786     848     899
+389,9287        65      1185    1298    1407
 ```
 
 
@@ -119,8 +118,8 @@ Logged:    10000
 Processed: 10000
 Rejected:  0
 Loose:     0
-Duration Avg: 87 millis
-Duration Max: 733 millis
+Duration Avg: 331 millis
+Duration Max: 1452 millis
 mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
-87,4085 14      387,2   606     679,01
+331,97  21      1178    1328,05 1380
 ```
