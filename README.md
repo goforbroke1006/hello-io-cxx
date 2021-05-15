@@ -33,6 +33,14 @@ bash ./run-demo.sh ./cmake-build-debug/05-ss-epoll/05-ss-epoll ./cmake-build-deb
 
 Use **get-metrics.sh** script to analyze output logs.
 
+```txt
+Processor type: x86_64
+OS: GNU/Linux
+
+CPU: Intel(R) Core(TM) i5-6300HQ CPU @ 2.30GHz
+RAM: 32GiB
+```
+
 #### 01-ss-1th
 
 ```bash
