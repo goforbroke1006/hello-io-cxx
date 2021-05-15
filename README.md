@@ -89,10 +89,10 @@ Logged:    10000
 Processed: 10000
 Rejected:  0
 Loose:     0
-Duration Avg: 132 millis
-Duration Max: 509 millis
+Duration Avg: 231 millis
+Duration Max: 1129 millis
 mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
-132,6143        76      321     453     484
+231,7049        19      913     939     1031,01
 ```
 
 #### 04-ss-poll

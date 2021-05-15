@@ -12,7 +12,7 @@
 
 bool serverRunning = true;
 
-#define MY_INCOME_BANDWIDTH 2500
+//#define MY_INCOME_BANDWIDTH 2500
 
 int main(int argc, char **argv) {
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
     struct sockaddr_in clientName;
 
-    const int nfds = listenFD + MY_INCOME_BANDWIDTH;
+    const int nfds = FD_SETSIZE; //listenFD + MY_INCOME_BANDWIDTH;
     int maxFDIndex = listenFD + 1;
 
     while (serverRunning) {
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
                         size_t size = sizeof(clientName);
                         int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
                         if (clientSock < 0) {
-                            perror("  accept() failed");
+                            // no new clients
                             break;
                         }
                         FD_SET(clientSock, &masterSet);
