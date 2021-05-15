@@ -85,14 +85,14 @@ bash get-metrics.sh 03-ss-select-output.log
 
 ```txt
 Concurrency: 10000
-Logged:    9982
-Processed: 9982
+Logged:    10000
+Processed: 10000
 Rejected:  0
-Loose:     18
-Duration Avg: 103 millis
-Duration Max: 9584 millis
+Loose:     0
+Duration Avg: 132 millis
+Duration Max: 509 millis
 mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
-103,15678220797 39      215     334,9   863
+132,6143        76      321     453     484
 ```
 
 #### 04-ss-poll

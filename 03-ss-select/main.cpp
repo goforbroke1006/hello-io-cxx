@@ -44,30 +44,37 @@ int main(int argc, char **argv) {
         memcpy(&workingSet, &masterSet, sizeof(masterSet));
 
         struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 100;
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
 
         int readyDescriptorsNumber = select(nfds, &workingSet, nullptr, nullptr, &timeout);
-        if (readyDescriptorsNumber < 0) {
-            perror("  select() failed");
+        if (readyDescriptorsNumber == 0) {
+            // timeout exceeded, anyone event happens
             continue;
         }
+        if (readyDescriptorsNumber < 0) {
+            perror("  select() failed");
+            serverRunning = false;
+            break;
+        }
 
-        for (int clientFD = listenFD; clientFD <= listenFD + readyDescriptorsNumber; ++clientFD) {
+        for (int clientFD = listenFD; clientFD <= listenFD + nfds; ++clientFD) {
             if (FD_ISSET(clientFD, &workingSet)) {
 
                 if (clientFD == listenFD) {
-                    size_t size = sizeof(clientName);
-                    int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
-                    if (clientSock < 0) {
-                        perror("  accept() failed");
-                        break;
+                    while (true) {
+                        size_t size = sizeof(clientName);
+                        int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
+                        if (clientSock < 0) {
+                            perror("  accept() failed");
+                            break;
+                        }
+                        FD_SET(clientSock, &masterSet);
+                        if (clientSock > maxFDIndex) {
+                            maxFDIndex = clientSock;
+                        }
+                        std::cout << "[server] new client " << clientSock << std::endl;
                     }
-                    FD_SET(clientSock, &masterSet);
-                    if (clientSock > maxFDIndex) {
-                        maxFDIndex = clientSock;
-                    }
-                    std::cout << "[server] new client " << clientSock << std::endl;
                 } else if (clientFD == -1) {
                     continue;
                 } else {
@@ -80,8 +87,8 @@ int main(int argc, char **argv) {
                         FD_CLR(clientFD, &workingSet);
                     }
                     if (resLen < 0) {
-                        if (errno != EWOULDBLOCK) {
-                            std::cerr << "i=" << clientFD << " fd=" << clientFD << std::endl;
+                        if (errno != EWOULDBLOCK && errno != EBADF) {
+                            std::cerr << "i=" << clientFD << " fd=" << clientFD << " errno=" << errno << std::endl;
                             perror("  recv() failed");
                             serverRunning = false;
                             break;
