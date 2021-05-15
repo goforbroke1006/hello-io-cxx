@@ -40,20 +40,20 @@ int main(int argc, char **argv) {
 
     while (serverRunning) {
 
-//        if (maxFDIndex > nfds)
-//            nfds = maxFDIndex;
-//        if (nfds > listenFD + MY_INCOME_BANDWIDTH)
-//            nfds = listenFD + MY_INCOME_BANDWIDTH;
-
+        FD_ZERO(&workingSet);
         memcpy(&workingSet, &masterSet, sizeof(masterSet));
 
-        int readyDescriptorsNumber = select(nfds, &workingSet, nullptr, nullptr, nullptr);
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100;
+
+        int readyDescriptorsNumber = select(nfds, &workingSet, nullptr, nullptr, &timeout);
         if (readyDescriptorsNumber < 0) {
             perror("  select() failed");
-            exit(EXIT_FAILURE);
+            continue;
         }
 
-        for (int clientFD = listenFD; clientFD <= nfds; ++clientFD) {
+        for (int clientFD = listenFD; clientFD <= listenFD + readyDescriptorsNumber; ++clientFD) {
             if (FD_ISSET(clientFD, &workingSet)) {
 
                 if (clientFD == listenFD) {
@@ -71,21 +71,22 @@ int main(int argc, char **argv) {
                 } else if (clientFD == -1) {
                     continue;
                 } else {
-                    bool clientIsDisconnected = false;
-                    /*ssize_t resLen =*/ readFromClient(clientFD, serverRunning, clientIsDisconnected);
-                    if (clientIsDisconnected) {
-                        FD_CLR(clientFD, &masterSet);
-                        close(clientFD);
+                    bool disconnect = false;
+                    ssize_t resLen = readFromClient(clientFD, serverRunning, disconnect);
+                    if (disconnect) {
                         std::cout << "[server] close client " << clientFD << std::endl;
+                        close(clientFD);
+                        FD_CLR(clientFD, &masterSet);
+                        FD_CLR(clientFD, &workingSet);
                     }
-//                    if (resLen < 0) {
-//                        if (errno != EWOULDBLOCK) {
-//                            std::cerr << "i=" << clientFD << " fd=" << clientFD << std::endl;
-//                            perror("  recv() failed");
-//                            serverRunning = false;
-//                            break;
-//                        }
-//                    }
+                    if (resLen < 0) {
+                        if (errno != EWOULDBLOCK) {
+                            std::cerr << "i=" << clientFD << " fd=" << clientFD << std::endl;
+                            perror("  recv() failed");
+                            serverRunning = false;
+                            break;
+                        }
+                    }
                 }
 
             }
@@ -103,7 +104,7 @@ int main(int argc, char **argv) {
 
 
     close(listenFD);
-    std::cout << "server shutdown..." << std::endl;
+    std::cout << "[server] shutdown..." << std::endl;
 
     return 0;
 }

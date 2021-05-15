@@ -134,7 +134,7 @@ inline int createSocketNonBlocking(const std::string &host, int port) {
 
 #define MAXMSG 2048
 
-ssize_t readFromClient(int clientSockFD, bool &serverRunning, bool &clientDisconnected) {
+ssize_t readFromClient(int clientSockFD, bool &serverRunning, bool &disconnect) {
     char buffer[MAXMSG];
     memset(buffer, 0, sizeof buffer);
 
@@ -148,7 +148,7 @@ ssize_t readFromClient(int clientSockFD, bool &serverRunning, bool &clientDiscon
     }
     if (nbytes == 0) {
         close(clientSockFD);
-        clientDisconnected = true;
+        disconnect = true;
         return nbytes;
     }
 
@@ -160,8 +160,7 @@ ssize_t readFromClient(int clientSockFD, bool &serverRunning, bool &clientDiscon
         serverRunning = false;
 
     if (command == "exit") {
-        close(clientSockFD);
-        clientDisconnected = true;
+        disconnect = true;
         return 0;
     }
 

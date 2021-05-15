@@ -97,9 +97,9 @@ int main(int argc, char **argv) {
             } else if (fds[i].fd == -1) {
                 continue;
             } else {
-                bool clientIsDisconnected = false;
-                ssize_t resLen = readFromClient(fds[i].fd, serverRunning, clientIsDisconnected);
-                if (clientIsDisconnected) {
+                bool disconnect = false;
+                ssize_t resLen = readFromClient(fds[i].fd, serverRunning, disconnect);
+                if (disconnect) {
                     std::cout << "[server] close client " << fds[i].fd << std::endl;
                     close(fds[i].fd);
                     fds[i].fd = -1;

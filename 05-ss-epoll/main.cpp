@@ -62,10 +62,10 @@ int main(int argc, char **argv) {
             }
 
             if (events[i].data.fd == listenFD) {
-                while(true) {
-                    struct sockaddr in_addr;
-                    socklen_t in_len = sizeof(in_addr);
-                    clientSock = accept(listenFD, &in_addr, &in_len);
+                while (true) {
+//                    struct sockaddr in_addr;
+//                    socklen_t in_len = sizeof(in_addr);
+                    clientSock = accept(listenFD, nullptr, nullptr);
                     if (clientSock == -1) {
                         if (errno != EWOULDBLOCK) {
                             perror("  accept() client failed");
@@ -88,11 +88,11 @@ int main(int argc, char **argv) {
                     std::cout << "[server] new client " << clientSock << std::endl;
                 }
             } else {
-                bool cd = false;
-                readFromClient(events[i].data.fd, serverRunning, cd);
-                if (cd) {
-                    close(events[i].data.fd);
+                bool disconnect = false;
+                readFromClient(events[i].data.fd, serverRunning, disconnect);
+                if (disconnect) {
                     std::cout << "[server] close client " << events[i].data.fd << std::endl;
+                    close(events[i].data.fd);
                 }
             }
         }
