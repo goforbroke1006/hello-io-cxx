@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     FD_ZERO(&masterSet);
     FD_SET(listenFD, &masterSet);
 
-    struct sockaddr_in clientName;
+//    struct sockaddr_in clientName;
 
     const int nfds = FD_SETSIZE; //listenFD + MY_INCOME_BANDWIDTH;
     int maxFDIndex = listenFD + 1;
@@ -63,8 +63,9 @@ int main(int argc, char **argv) {
 
                 if (clientFD == listenFD) {
                     while (true) {
-                        size_t size = sizeof(clientName);
-                        int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
+//                        size_t size = sizeof(clientName);
+//                        int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
+                        int clientSock = accept(listenFD, nullptr, nullptr);
                         if (clientSock < 0) {
                             break; // no new clients
                         }
