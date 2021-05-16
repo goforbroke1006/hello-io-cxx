@@ -66,8 +66,7 @@ int main(int argc, char **argv) {
                         size_t size = sizeof(clientName);
                         int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
                         if (clientSock < 0) {
-                            // no new clients
-                            break;
+                            break; // no new clients
                         }
                         FD_SET(clientSock, &masterSet);
                         if (clientSock > maxFDIndex) {

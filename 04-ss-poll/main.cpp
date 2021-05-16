@@ -75,6 +75,10 @@ int main(int argc, char **argv) {
 
                     clientSock = accept(listenFD, nullptr, nullptr);
                     if (clientSock < 0) {
+                        if (errno != EWOULDBLOCK) {
+                            perror("  accept() client failed");
+                            serverRunning = false;
+                        }
                         break;
                     }
                     std::cout << "[server] new client " << clientSock << std::endl;

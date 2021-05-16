@@ -3,9 +3,9 @@
 //
 
 #include <iostream>
-#include <netinet/in.h> // sockaddr_in{} socket()
+#include <string>
 #include <unistd.h>     // close()
-#include <sys/epoll.h>  // epoll_create()
+#include <sys/epoll.h>  // epoll_create() epoll_ctl() epoll_wait()
 #include <array>
 
 #include "../utils.h"
@@ -49,7 +49,12 @@ int main(int argc, char **argv) {
     while (serverRunning) {
 
         int ready = epoll_wait(epollFD, events.data(), events.size(), -1);
+        if (ready == 0) {
+            continue; // timeout exceeded, no events
+        }
         if (ready == -1) {
+            perror("  epoll_wait() failed");
+            serverRunning = false;
             continue;
         }
 
@@ -63,8 +68,6 @@ int main(int argc, char **argv) {
 
             if (events[i].data.fd == listenFD) {
                 while (true) {
-//                    struct sockaddr in_addr;
-//                    socklen_t in_len = sizeof(in_addr);
                     clientSock = accept(listenFD, nullptr, nullptr);
                     if (clientSock == -1) {
                         if (errno != EWOULDBLOCK) {
