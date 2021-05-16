@@ -5,6 +5,10 @@
 #ifndef SERVER_SAMPLES_UTILS_H
 #define SERVER_SAMPLES_UTILS_H
 
+#if defined (WIN32)
+static inline int poll( struct pollfd *pfd, int nfds, int timeout) { return WSAPoll ( pfd, nfds, timeout ); }
+#endif
+
 #include <cstring>
 
 std::string getAppName(char **argv) {

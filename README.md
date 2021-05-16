@@ -131,3 +131,8 @@ Duration Max: 1452 millis
 mean(field-1)   median(field-1) perc:90(field-1)        perc:95(field-1)        perc:99(field-1)
 331,97  21      1178    1328,05 1380
 ```
+
+### Useful links
+
+* [select vs poll vs epoll](https://habr.com/ru/company/infopulse/blog/415259/)
+* [linux multiplexing select vs poll vs epoll](https://devarea.com/linux-io-multiplexing-select-vs-poll-vs-epoll/#.YJ8nOnX7RKs)

@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
             if (fds[i].fd == listenFD) {
                 int clientSock = 0;
                 int nextTryIndex = 0;
-                do {
+                while (true) {
 
                     if (nextTryIndex + 1 >= MY_INCOME_BANDWIDTH) {
                         std::cout << "[server] descriptors count exceeded..." << std::endl;
@@ -75,10 +75,6 @@ int main(int argc, char **argv) {
 
                     clientSock = accept(listenFD, nullptr, nullptr);
                     if (clientSock < 0) {
-                        if (errno != EWOULDBLOCK) {
-                            perror("  accept() failed");
-                            serverRunning = false;
-                        }
                         break;
                     }
                     std::cout << "[server] new client " << clientSock << std::endl;
@@ -93,7 +89,7 @@ int main(int argc, char **argv) {
                         }
                     }
 
-                } while (clientSock != -1);
+                }
             } else if (fds[i].fd == -1) {
                 continue;
             } else {
