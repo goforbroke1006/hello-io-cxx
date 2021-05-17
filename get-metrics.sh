@@ -2,40 +2,30 @@
 
 FILENAME=$1
 
+TARGET_FILENAME="${FILENAME}.metrics.txt"
+DURATIONS_LOG="${FILENAME}-durations.log"
+
+rm -f "${TARGET_FILENAME}" "${DURATIONS_LOG}"
+
 concurrency=$(cat "${FILENAME}" | grep '========== Concurrency: ' | awk '{print $3}')
-echo "Concurrency: ${concurrency}"
 
-processedClientsMetric=$(cat "${FILENAME}" | grep 'SPEND TIME' | wc -l)
-rejectedClientsMetric=$(cat "${FILENAME}" | grep 'connect: Connection timed out' | wc -l)
+processedClientsMetric=$(cat "${FILENAME}" | grep -c 'SPEND TIME')
+rejectedClientsMetric=$(cat "${FILENAME}" | grep -c 'failed')
 
-totalClientsMetrics=$(cat "${FILENAME}" | grep -v "==" | wc -l)
-looseClientsMetrics=$((concurrency - totalClientsMetrics))
+(
+  echo "Concurrency: ${concurrency}"
+  echo "Processed:   ${processedClientsMetric}"
+  echo "Rejected:    ${rejectedClientsMetric}"
+) >> "${TARGET_FILENAME}"
 
-echo "Logged:    ${totalClientsMetrics}"
-echo "Processed: ${processedClientsMetric}"
-echo "Rejected:  ${rejectedClientsMetric}"
-echo "Loose:     ${looseClientsMetrics}"
 
-durationCount=0
-durationSum=0
-durationMax=0
 
 rm -f ./durations.log
 while read -r line; do
   duration=$(echo "${line}" | awk '{print $3}')
-  if [ "$duration" -gt "$durationMax" ]; then
-    durationMax=$duration
-  fi
-
-  durationCount=$((durationCount + 1))
-  durationSum=$((durationSum + duration))
-
-  echo $duration >> ./durations.log
+  echo "${duration}" >> "${DURATIONS_LOG}"
 done<<<$(cat "${FILENAME}" | grep 'SPEND TIME')
 
-durationAvg=$((durationSum / durationCount))
-
-echo "Duration Avg: ${durationAvg} millis"
-echo "Duration Max: ${durationMax} millis"
-
-datamash --header-out mean 1 median 1 perc:90 1 perc:95 1 perc:99 1 < ./durations.log
+(
+  datamash --header-out mean 1 median 1 perc:90 1 perc:95 1 perc:99 1 < "${DURATIONS_LOG}"
+) >> "${TARGET_FILENAME}"

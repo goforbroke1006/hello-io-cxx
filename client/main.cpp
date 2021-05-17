@@ -69,6 +69,9 @@ int main(int argc, char **argv) {
     bool hasErrors = false;
 
     for (const auto &msg : messages) {
+
+        usleep(500 * 1000);
+
         ssize_t sendLen = send(clientFD, msg.c_str(), msg.length(), 0);
         if (sendLen < 0) {
             perror("  send() failed");
