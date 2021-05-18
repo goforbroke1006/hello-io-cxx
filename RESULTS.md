@@ -3,108 +3,108 @@
 ### 03-ss-select
 ```txt
 Concurrency: 10
-Processed:   241
+Processed:   252
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-4985,3485477178	5004	5005	5006	5007
+4968,6706349206	5004	5006	5007	5008
 ```
 ```txt
 Concurrency: 1000
 Processed:   5104
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5488,6189263323	5089	6540,7	7079,85	7204,97
+5470,0934561129	5097	6754	6900	7066
 ```
 ```txt
 Concurrency: 2500
-Processed:   5811
+Processed:   5852
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5489,4207537429	5064	7070	7631	7783
+5559,793062201	5072	7975	8380	8412
 ```
 ```txt
 Concurrency: 10000
-Processed:   10479
+Processed:   10989
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-17254,025861246	5263	63945,6	83598,1	84633,66
+18403,381927382	6172	30677,2	135098,6	140661,36
 ```
 ```txt
-Concurrency: 20000
-Processed:   10218
+Concurrency: 25000
+Processed:   15494
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-19334,886572715	7199	50715,6	75912,15	76385,66
+18887,005615077	8300	67163,7	69878,55	105414,07
 ```
 ### 04-ss-poll
 ```txt
 Concurrency: 10
-Processed:   250
+Processed:   256
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5002,144	5002	5003	5003	5004
+4896,57421875	5002	5002	5003	5003
 ```
 ```txt
 Concurrency: 1000
-Processed:   9032
+Processed:   9015
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5169,7462356067	5148	5317,9	5372	5473,69
+5114,8975041597	5106	5191	5230	5297,86
 ```
 ```txt
 Concurrency: 2500
-Processed:   11892
+Processed:   11910
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5193,2198957282	5161	5358	5444,45	5557
+5153,4792611251	5140	5250	5289	5337
 ```
 ```txt
 Concurrency: 10000
-Processed:   16108
+Processed:   16297
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5160,7087161659	5141	5284	5321	5403
+5172,3904399583	5162	5281	5325,2	5394
 ```
 ```txt
-Concurrency: 20000
-Processed:   16138
+Concurrency: 25000
+Processed:   21471
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5184,864667245	5152	5359	5408	5538
+5159,789343766	5127	5323	5385	5477
 ```
 ### 05-ss-epoll
 ```txt
 Concurrency: 10
-Processed:   254
+Processed:   241
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-4933,1968503937	5004	5006	5006	5006,47
+4985,4066390041	5004	5006	5007	5007
 ```
 ```txt
 Concurrency: 1000
-Processed:   9378
+Processed:   10496
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5020,7971849008	5006	5077	5098	5116
+5015,6752096037	5007	5049	5065	5084
 ```
 ```txt
 Concurrency: 2500
-Processed:   13395
+Processed:   13418
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5081,8557670773	5006	5281	5297	5306
+5035,8897004024	5006	5114	5168	5214
 ```
 ```txt
 Concurrency: 10000
-Processed:   18755
+Processed:   18776
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5180,3509464143	5004	5710	5719	5730
+5212,3434171282	5005	5863	5888	5907
 ```
 ```txt
-Concurrency: 20000
-Processed:   18757
+Concurrency: 25000
+Processed:   23977
 Rejected:    0
 mean(field-1)	median(field-1)	perc:90(field-1)	perc:95(field-1)	perc:99(field-1)
-5034,3728208136	5004	5149	5156	5161
+5086,9647995996	5003	5443	5452	5459
 ```

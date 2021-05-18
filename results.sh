@@ -31,7 +31,7 @@ rm -f ${TMP_FILENAME}
   echo '```'
 
   echo '```txt'
-  cat 03-ss-select-20000-output.log.metrics.txt
+  cat 03-ss-select-25000-output.log.metrics.txt
   echo '```'
 
   echo "### 04-ss-poll"
@@ -53,7 +53,7 @@ rm -f ${TMP_FILENAME}
   echo '```'
 
   echo '```txt'
-  cat 04-ss-poll-20000-output.log.metrics.txt
+  cat 04-ss-poll-25000-output.log.metrics.txt
   echo '```'
 
   echo "### 05-ss-epoll"
@@ -75,7 +75,7 @@ rm -f ${TMP_FILENAME}
   echo '```'
 
   echo '```txt'
-  cat 05-ss-epoll-20000-output.log.metrics.txt
+  cat 05-ss-epoll-25000-output.log.metrics.txt
   echo '```'
 
 }>> ${TMP_FILENAME}
