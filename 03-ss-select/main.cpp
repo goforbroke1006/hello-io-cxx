@@ -9,17 +9,20 @@
 #include <sys/select.h> // fd_set{} FD_ZERO() FD_SET() select() FD_ISSET() FD_CLR()
 
 #include "../utils.h"
+#include "../SocketServerMetrics.h"
 
 bool serverRunning = true;
 
 //#define MY_INCOME_BANDWIDTH 2500
 
 int main(int argc, char **argv) {
+    SocketServerMetrics ssm("serversample", "03ssselect");
+    ssm.init();
 
     auto appName = getAppName(argv);
 
     if (argc != 3) {
-        std::cerr << "Usage: " << appName << " 0.0.0.0 8080" << std::endl;
+        std::cerr << "Usage: " << appName << " 0.0.0.0 12000" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -63,8 +66,6 @@ int main(int argc, char **argv) {
 
                 if (clientFD == listenFD) {
                     while (true) {
-//                        size_t size = sizeof(clientName);
-//                        int clientSock = accept(listenFD, (struct sockaddr *) &clientName, (socklen_t *) &size);
                         int clientSock = accept(listenFD, nullptr, nullptr);
                         if (clientSock < 0) {
                             break; // no new clients
@@ -74,25 +75,29 @@ int main(int argc, char **argv) {
                             maxFDIndex = clientSock;
                         }
                         std::cout << "[server] new client " << clientSock << std::endl;
+                        ssm.acceptedClients().Increment();
                     }
                 } else if (clientFD == -1) {
                     continue;
                 } else {
                     bool disconnect = false;
-                    ssize_t resLen = readFromClient(clientFD, serverRunning, disconnect);
+                    ssize_t readLen = readFromClient(clientFD, serverRunning, disconnect);
                     if (disconnect) {
                         std::cout << "[server] close client " << clientFD << std::endl;
                         close(clientFD);
                         FD_CLR(clientFD, &masterSet);
                         FD_CLR(clientFD, &workingSet);
                     }
-                    if (resLen < 0) {
+                    if (readLen < 0) {
                         if (errno != EWOULDBLOCK && errno != EBADF) {
                             std::cerr << "i=" << clientFD << " fd=" << clientFD << " errno=" << errno << std::endl;
                             perror("  recv() failed");
                             serverRunning = false;
                             break;
                         }
+                    }
+                    if (readLen >= 0){
+                        ssm.processedMessages().Increment();
                     }
                 }
 

@@ -9,17 +9,20 @@
 #include <sys/poll.h>   // pollfd{}
 
 #include "../utils.h"
+#include "../SocketServerMetrics.h"
 
 bool serverRunning = true;
 
 #define MY_INCOME_BANDWIDTH 2500
 
 int main(int argc, char **argv) {
+    SocketServerMetrics ssm("serversample", "04sspoll");
+    ssm.init();
 
     auto appName = getAppName(argv);
 
     if (argc != 3) {
-        std::cerr << "Usage: " << appName << " 0.0.0.0 8080" << std::endl;
+        std::cerr << "Usage: " << appName << " 0.0.0.0 12000" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -82,6 +85,7 @@ int main(int argc, char **argv) {
                         break;
                     }
                     std::cout << "[server] new client " << clientSock << std::endl;
+                    ssm.acceptedClients().Increment();
 
                     // look for next free descriptor slot
                     for (int fi = nextTryIndex; fi < MY_INCOME_BANDWIDTH; ++fi) {
@@ -111,6 +115,9 @@ int main(int argc, char **argv) {
                         serverRunning = false;
                         break;
                     }
+                }
+                if (resLen >= 0) {
+                    ssm.processedMessages().Increment();
                 }
             }
 
