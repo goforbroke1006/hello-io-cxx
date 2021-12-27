@@ -16,7 +16,7 @@
 bool serverRunning = true;
 
 int main(int argc, char **argv) {
-    SocketServerMetrics ssm("serversample", "05ssepoll");
+    SocketServerMetrics ssm(get_metric_name("hello-io-cxx"), get_metric_name("05-ss-epoll"));
     ssm.init();
 
     auto appName = getAppName(argv);
@@ -101,14 +101,14 @@ int main(int argc, char **argv) {
                     std::cout << "[server] close client " << events[i].data.fd << std::endl;
                     close(events[i].data.fd);
                 }
-                if (readLen >= 0){
+                if (readLen >= 0) {
                     ssm.processedMessages().Increment();
                 }
             }
         }
     }
 
-    for (const auto &e : events) {
+    for (const auto &e: events) {
         if (e.data.fd > 0)
             close(e.data.fd);
     }

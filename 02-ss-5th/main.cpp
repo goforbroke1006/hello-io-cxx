@@ -11,12 +11,16 @@
 #include <mutex>
 
 #include "../utils.h"
+#include "../SocketServerMetrics.h"
 
 std::mutex acceptConnectionsMX;
 
 bool serverRunning = true;
 
 void process_client(int listenFD) {
+    SocketServerMetrics ssm(get_metric_name("hello-io-cxx"), get_metric_name("02-ss-5th"));
+    ssm.init();
+
     int clientSock;
     struct sockaddr_in clientSockAddr;
     int c = sizeof(struct sockaddr_in);

@@ -9,13 +9,17 @@
 #include <unistd.h>     // close()
 
 #include "../utils.h"
+#include "../SocketServerMetrics.h"
 
 int main(int argc, char **argv) {
+
+    SocketServerMetrics ssm(get_metric_name("hello-io-cxx"), get_metric_name("01-ss-1th"));
+    ssm.init();
 
     auto appName = getAppName(argv);
 
     if (argc != 3) {
-        std::cerr << "Usage: " << appName << " 0.0.0.0 8080" << std::endl;
+        std::cerr << "Usage: " << appName << " 0.0.0.0 12000" << std::endl;
         exit(EXIT_FAILURE);
     }
 

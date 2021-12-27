@@ -8,6 +8,13 @@
 #include <prometheus/counter.h>
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
+#include <regex>
+
+std::string get_metric_name(const std::string &name) {
+    std::string result = name;
+    result = std::regex_replace(result, std::regex("-"), "_");
+    return result;
+}
 
 class SocketServerMetrics {
 
@@ -16,13 +23,13 @@ public:
     SocketServerMetrics(const std::string &serviceName, const std::string &componentName)
             : registry(std::make_shared<prometheus::Registry>()),
               acceptedClientsCounter(
-                      prometheus::BuildCounter().Name(
-                              serviceName + "_" + componentName + "_" + "accepted_clients").Help(
+                      prometheus::BuildCounter().Labels({{"component", componentName}}).Name(
+                              serviceName + "_" + "accepted_clients").Help(
                               "Number of accepted clients").Register(*this->registry)
               ),
               processedMessagesCounter(
-                      prometheus::BuildCounter().Name(
-                              serviceName + "_" + componentName + "_" + "processed_messages").Help(
+                      prometheus::BuildCounter().Labels({{"component", componentName}}).Name(
+                              serviceName + "_" + "processed_messages").Help(
                               "Number of processed messages").Register(*this->registry)
               ) {}
 

@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "prometheus"
+    scrape_interval: 5s
+    static_configs:
+      - targets: [ "localhost:9090" ]
+
+  - job_name: "01-ss-1th"
+    static_configs: [ { targets: [ "01-ss-1th:8080" ] } ]
+  - job_name: "02-ss-5th"
+    static_configs: [ { targets: [ "02-ss-5th:8080" ] } ]
+  - job_name: "03-ss-select"
+    static_configs: [ { targets: [ "03-ss-select:8080" ] } ]
+  - job_name: "04-ss-poll"
+    static_configs: [ { targets: [ "04-ss-poll:8080" ] } ]
+  - job_name: "05-ss-epoll"
+    static_configs: [ { targets: [ "05-ss-epoll:8080" ] } ]
+
+#remote_write:
+#  - url: "<Your Prometheus remote_write endpoint>"
+#    basic_auth:
+#      username: "<Your Grafana Username>"
+#      password: "<Your Grafana API key>"

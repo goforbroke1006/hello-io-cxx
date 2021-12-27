@@ -16,7 +16,7 @@ bool serverRunning = true;
 #define MY_INCOME_BANDWIDTH 2500
 
 int main(int argc, char **argv) {
-    SocketServerMetrics ssm("serversample", "04sspoll");
+    SocketServerMetrics ssm(get_metric_name("hello-io-cxx"), get_metric_name("04-ss-poll"));
     ssm.init();
 
     auto appName = getAppName(argv);
