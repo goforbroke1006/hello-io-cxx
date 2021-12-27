@@ -12,6 +12,10 @@ if [[ ! -f ${SERVER_BINARY} ]]; then
   echo 'wrong path'
   exit 1
 fi
+if [[ ! -f ${CLIENT_BINARY} ]]; then
+  echo 'wrong path'
+  exit 1
+fi
 
 # constants
 SERVER_PORT=12002
